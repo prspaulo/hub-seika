@@ -1,0 +1,12 @@
+$kind: http-request
+name: 'List materiais'
+method: GET
+url: '{{base_url}}/api/v1/acervo'
+order: 2000
+queryParams:
+  - key: search
+    value: ''
+    disabled: true
+  - key: area
+    value: ''
+    disabled: true

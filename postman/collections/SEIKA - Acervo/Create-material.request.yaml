@@ -1,0 +1,26 @@
+$kind: http-request
+name: 'Create material'
+method: POST
+url: '{{base_url}}/api/v1/acervo'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "titulo": "Checklist de abertura de empresa",
+      "area": "Legalização",
+      "tipo": "DOCUMENTO",
+      "categoria": "Modelos",
+      "url": "https://drive.google.com/drive/folders/exemplo"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set('material_id', pm.response.json().id);
+      }
+examples: './.resources/Create-material.resources/examples/'

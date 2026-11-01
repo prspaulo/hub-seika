@@ -234,6 +234,33 @@ button.danger {
   cursor: pointer;
 }
 
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.material-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.material-card strong {
+  font-size: 13px;
+}
+
+.material-card .row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(4, minmax(230px, 1fr));

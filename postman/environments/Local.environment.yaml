@@ -41,3 +41,6 @@ values:
   - key: virtual_cobranca_id
     value: ''
     enabled: true
+  - key: material_id
+    value: ''
+    enabled: true

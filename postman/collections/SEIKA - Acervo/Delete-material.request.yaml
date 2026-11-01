@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'Delete material'
+method: DELETE
+url: '{{base_url}}/api/v1/acervo/{{material_id}}'
+order: 5000

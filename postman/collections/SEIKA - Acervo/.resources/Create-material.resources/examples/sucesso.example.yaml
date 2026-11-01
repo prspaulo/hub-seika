@@ -1,0 +1,24 @@
+$kind: http-example
+name: sucesso
+request:
+  url: '{{base_url}}/api/v1/acervo'
+  method: POST
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    - key: content-type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "id": "<uuid>",
+        "titulo": "Checklist de abertura de empresa",
+        "area": "Legalização",
+        "tipo": "DOCUMENTO",
+        "categoria": "Modelos",
+        "url": "https://drive.google.com/drive/folders/exemplo",
+        "descricao": null,
+        "createdAt": "2026-11-01T00:00:00.000Z"
+      }

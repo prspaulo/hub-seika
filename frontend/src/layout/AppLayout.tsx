@@ -25,7 +25,7 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
     title: "Ferramentas & conhecimento",
     items: [
       { label: "Ferramentas e Hub", phase: "Fase 6" },
-      { label: "Academia e Acervo", phase: "Fase 5" },
+      { label: "Academia e Acervo", path: "/acervo" },
     ],
   },
   {

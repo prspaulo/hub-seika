@@ -12,6 +12,7 @@ import { MeuEspaco } from "./pages/meuespaco/MeuEspaco";
 import { Operacional } from "./pages/operacional/Operacional";
 import { LegalizacaoPage } from "./pages/legalizacao/LegalizacaoPage";
 import { FinanceiroPage } from "./pages/financeiro/FinanceiroPage";
+import { AcervoPage } from "./pages/acervo/AcervoPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
           { path: "operacional", element: <Operacional /> },
           { path: "legalizacao", element: <LegalizacaoPage /> },
           { path: "financeiro", element: <FinanceiroPage /> },
+          { path: "acervo", element: <AcervoPage /> },
         ],
       },
     ],
