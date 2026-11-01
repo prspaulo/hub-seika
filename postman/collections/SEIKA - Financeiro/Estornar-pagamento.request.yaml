@@ -1,0 +1,14 @@
+$kind: http-request
+name: 'Estornar pagamento'
+method: POST
+url: '{{base_url}}/api/v1/financeiro/cobrancas/{{cobranca_id}}/estorno'
+order: 3000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "motivo": "Teste de estorno via collection"
+    }

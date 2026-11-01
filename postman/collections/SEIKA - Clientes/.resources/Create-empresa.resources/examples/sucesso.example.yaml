@@ -1,0 +1,25 @@
+$kind: http-example
+name: sucesso
+request:
+  url: '{{base_url}}/api/v1/empresas'
+  method: POST
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    - key: content-type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "id": "<uuid>",
+        "razaoSocial": "Confeitaria São José LTDA",
+        "nomeFantasia": "São José",
+        "cnpj": "45723174000110",
+        "status": "ATIVA",
+        "email": "contato@saojose.com.br",
+        "telefone": null,
+        "createdAt": "2026-11-01T00:00:00.000Z",
+        "updatedAt": "2026-11-01T00:00:00.000Z"
+      }

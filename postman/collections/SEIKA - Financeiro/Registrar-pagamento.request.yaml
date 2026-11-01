@@ -1,0 +1,17 @@
+$kind: http-request
+name: 'Registrar pagamento'
+method: POST
+url: '{{base_url}}/api/v1/financeiro/cobrancas/{{cobranca_id}}/pagamento'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "valor": 1350,
+      "pagoEm": "2026-11-05",
+      "formaPagamento": "PIX"
+    }
+examples: './.resources/Registrar-pagamento.resources/examples/'

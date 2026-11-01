@@ -1,0 +1,14 @@
+$kind: http-request
+name: 'Conclude processo'
+method: PATCH
+url: '{{base_url}}/api/v1/processos/{{processo_id}}'
+order: 3000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "CONCLUIDO"
+    }

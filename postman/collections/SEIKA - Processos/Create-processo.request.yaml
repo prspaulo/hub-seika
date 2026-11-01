@@ -1,0 +1,31 @@
+$kind: http-request
+name: 'Create processo'
+method: POST
+url: '{{base_url}}/api/v1/processos'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "empresaId": "{{empresa_id}}",
+      "owner": "{{user_id}}",
+      "setor": "LEGALIZACAO",
+      "nome": "Abertura de empresa",
+      "valorInicial": 1500,
+      "descontoTipo": "PERCENTUAL",
+      "desconto": 10,
+      "prazo": "2026-12-01",
+      "vencimentoCobranca": "2026-12-05",
+      "coraSolicitado": true
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set('processo_id', pm.response.json().id);
+      }
+examples: './.resources/Create-processo.resources/examples/'

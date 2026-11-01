@@ -1,0 +1,25 @@
+$kind: http-request
+name: 'Create empresa'
+method: POST
+url: '{{base_url}}/api/v1/empresas'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "razaoSocial": "Confeitaria São José LTDA",
+      "nomeFantasia": "São José",
+      "cnpj": "45.723.174/0001-10",
+      "email": "contato@saojose.com.br"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set('empresa_id', pm.response.json().id);
+      }
+examples: './.resources/Create-empresa.resources/examples/'

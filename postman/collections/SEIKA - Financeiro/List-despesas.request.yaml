@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'List despesas'
+method: GET
+url: '{{base_url}}/api/v1/financeiro/despesas'
+order: 9000

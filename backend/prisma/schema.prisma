@@ -1,0 +1,275 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["auth", "clientes", "processos", "financeiro"]
+}
+
+enum Role {
+  SOCIO
+  FUNCIONARIO
+  CLIENTE
+
+  @@schema("auth")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         Role           @default(SOCIO)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+
+  @@schema("auth")
+}
+
+// Refresh tokens são opacos (não JWT) para poderem ser revogados no banco;
+// armazenamos só o hash SHA-256, nunca o valor em texto puro.
+model RefreshToken {
+  id         String    @id @default(uuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@schema("auth")
+}
+
+enum EmpresaStatus {
+  ATIVA
+  INATIVA
+  SUSPENSA
+
+  @@schema("clientes")
+}
+
+model Empresa {
+  id           String        @id @default(uuid())
+  razaoSocial  String
+  nomeFantasia String?
+  // CNPJ normalizado, só dígitos (14 chars), sem máscara — formata na borda (frontend).
+  cnpj         String        @unique
+  status       EmpresaStatus @default(ATIVA)
+  email        String?
+  telefone     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  licencas     Licenca[]
+
+  @@schema("clientes")
+}
+
+enum LicencaStatus {
+  VALIDA
+  VENCIDA
+  EM_RENOVACAO
+
+  @@schema("clientes")
+}
+
+model Licenca {
+  id        String        @id @default(uuid())
+  empresaId String
+  empresa   Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  tipo      String
+  numero    String?
+  status    LicencaStatus @default(VALIDA)
+  validade  DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([empresaId])
+  @@schema("clientes")
+}
+
+// Status compartilhado por Processo e Obrigação (mesmo fluxo do sistema antigo).
+enum StatusTarefa {
+  A_FAZER
+  EM_ANDAMENTO
+  AGUARDANDO_CLIENTE
+  CONCLUIDO
+
+  @@schema("processos")
+}
+
+enum Setor {
+  LEGALIZACAO
+  CONTABIL
+  FISCAL
+  DEPARTAMENTO_PESSOAL
+  TI
+  MARKETING
+  OPERACAO
+
+  @@schema("processos")
+}
+
+enum DescontoTipo {
+  REAIS
+  PERCENTUAL
+
+  @@schema("processos")
+}
+
+// empresaId/owner são ids de outros módulos (Clientes/Auth), validados via
+// chamada ao service deles — sem FK cross-schema, pra manter o módulo
+// extraível no futuro.
+model Processo {
+  id                 String        @id @default(uuid())
+  empresaId          String
+  owner              String
+  setor              Setor
+  nome               String
+  status             StatusTarefa  @default(A_FAZER)
+  valorInicialCentavos Int
+  descontoTipo       DescontoTipo  @default(REAIS)
+  descontoCentavos   Int?
+  descontoPercentual Float?
+  valorFinalCentavos Int
+  prazo              DateTime
+  vencimentoCobranca DateTime
+  descricao          String?
+  coraSolicitado     Boolean       @default(false)
+  concluidoEm        DateTime?
+  createdBy          String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([empresaId])
+  @@index([owner])
+  @@schema("processos")
+}
+
+model Obrigacao {
+  id        String       @id @default(uuid())
+  empresaId String?
+  owner     String
+  titulo    String
+  prazo     DateTime
+  status    StatusTarefa @default(A_FAZER)
+  notas     String?
+  createdBy String
+  updatedBy String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([empresaId])
+  @@index([owner])
+  @@schema("processos")
+}
+
+enum TipoCobranca {
+  ESPORADICO
+  MENSAL
+  AJUSTE
+
+  @@schema("financeiro")
+}
+
+enum StatusCobranca {
+  PENDENTE
+  PAGO
+
+  @@schema("financeiro")
+}
+
+enum FormaPagamento {
+  PIX
+  BOLETO
+  TRANSFERENCIA
+  DINHEIRO
+  CARTAO
+
+  @@schema("financeiro")
+}
+
+// "Atrasado" não é um status gravado — é calculado (status=PENDENTE e
+// vencimento < hoje), igual ao sistema antigo. empresaId/processoId
+// validados via service de outros módulos, sem FK cross-schema.
+model Cobranca {
+  id                    String          @id @default(uuid())
+  empresaId             String
+  processoId            String?
+  descricao             String
+  valorCentavos         Int
+  vencimento            DateTime
+  tipo                  TipoCobranca
+  // "monthly:<empresaId>:<competencia>" só quando tipo=MENSAL — garante uma
+  // cobrança por empresa/mês (NULL não conflita com outro NULL no Postgres).
+  chaveMensal           String?         @unique
+  status                StatusCobranca  @default(PENDENTE)
+  valorPagoCentavos     Int?
+  pagoEm                DateTime?
+  formaPagamento        FormaPagamento?
+  observacao            String?
+  recebidoPor           String?
+  coraSolicitado        Boolean         @default(false)
+  coraStatus            String?
+  estornoMotivo         String?
+  estornoPor            String?
+  estornoEm             DateTime?
+  estornoPagoEmAnterior DateTime?
+  createdBy             String
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([empresaId])
+  @@index([status])
+  @@schema("financeiro")
+}
+
+// Configuração de honorário recorrente por empresa — as cobranças do mês
+// corrente são geradas sob demanda (ver financeiroService), não por cron.
+model Mensalidade {
+  id            String   @id @default(uuid())
+  empresaId     String   @unique
+  valorCentavos Int
+  diaVencimento Int
+  ativaDesde    DateTime
+  ativo         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@schema("financeiro")
+}
+
+model Despesa {
+  id            String         @id @default(uuid())
+  descricao     String
+  categoria     String
+  valorCentavos Int
+  competencia   DateTime
+  status        StatusCobranca @default(PENDENTE)
+  createdBy     String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@schema("financeiro")
+}
+
+// Trilha de auditoria do módulo financeiro. Append-only POR CONVENÇÃO DE
+// CÓDIGO (o app nunca chama update/delete nela) — a garantia de verdade a
+// nível de banco (revogar UPDATE/DELETE da role de runtime) fica pra Fase 8,
+// quando migrations e runtime passam a usar credenciais separadas.
+model AuditLogFinanceiro {
+  id         String   @id @default(uuid())
+  entidade   String
+  entidadeId String
+  acao       String
+  ator       String
+  detalhes   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entidade, entidadeId])
+  @@schema("financeiro")
+}

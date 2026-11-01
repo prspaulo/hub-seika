@@ -1,0 +1,20 @@
+$kind: http-request
+name: 'List cobrancas (com mensalidade virtual)'
+method: GET
+url: '{{base_url}}/api/v1/financeiro/cobrancas?empresaId={{empresa_id}}&tipo=MENSAL'
+order: 5000
+queryParams:
+  - key: empresaId
+    value: '{{empresa_id}}'
+  - key: tipo
+    value: MENSAL
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 200) {
+        const body = pm.response.json();
+        if (body.items && body.items.length) {
+          pm.environment.set('virtual_cobranca_id', body.items[0].id);
+        }
+      }

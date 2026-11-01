@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'List licencas'
+method: GET
+url: '{{base_url}}/api/v1/empresas/licencas'
+order: 9000

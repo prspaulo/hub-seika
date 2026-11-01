@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'Get resumo'
+method: GET
+url: '{{base_url}}/api/v1/financeiro/resumo'
+order: 7000

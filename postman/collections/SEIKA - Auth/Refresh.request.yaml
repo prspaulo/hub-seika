@@ -1,0 +1,15 @@
+$kind: http-request
+name: Refresh
+method: POST
+url: '{{base_url}}/api/v1/auth/refresh'
+order: 2000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 200) {
+        const data = pm.response.json();
+        if (data.accessToken) {
+          pm.environment.set('access_token', data.accessToken);
+        }
+      }

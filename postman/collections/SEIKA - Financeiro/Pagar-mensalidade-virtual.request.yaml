@@ -1,0 +1,16 @@
+$kind: http-request
+name: 'Pagar mensalidade virtual (materializa)'
+method: POST
+url: '{{base_url}}/api/v1/financeiro/cobrancas/{{virtual_cobranca_id}}/pagamento'
+order: 6000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "valor": 800,
+      "pagoEm": "2026-11-05",
+      "formaPagamento": "BOLETO"
+    }

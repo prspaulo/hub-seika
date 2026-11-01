@@ -1,0 +1,23 @@
+:root {
+  --navy: #0c1d32;
+  --mint: #16b79a;
+  --teal: #128f9d;
+  --gold: #d1af55;
+  --bg: #f2f5f8;
+  --ink: #172c43;
+  --muted: #728397;
+  --line: #e1e7ee;
+  --red: #cf5260;
+  --yellow: #b8871b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}

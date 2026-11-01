@@ -1,0 +1,23 @@
+$kind: http-example
+name: sucesso
+request:
+  url: '{{base_url}}/api/v1/auth/login'
+  method: POST
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    - key: content-type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "accessToken": "<jwt>",
+        "user": {
+          "id": "<uuid>",
+          "name": "Paulo Gomes",
+          "email": "paulo.gomes@seika.com.br",
+          "role": "SOCIO"
+        }
+      }

@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: seika
+      POSTGRES_PASSWORD: seika
+      POSTGRES_DB: seika
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seika"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # MinIO (storage de documentos) entra no compose na Fase 5 — a imagem pública
+  # mudou de política de distribuição e precisa de uma tag fixa/alternativa a decidir.
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://seika:seika@postgres:5432/seika?schema=public
+      JWT_SECRET: dev-only-change-me-before-production
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

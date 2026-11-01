@@ -1,0 +1,3 @@
+$kind: collection
+name: 'SEIKA - Auth'
+description: 'Login, refresh, logout, /me e troca de senha do backend SEIKA (Fase 1 - Auth/Identity + RBAC).'

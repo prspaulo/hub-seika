@@ -1,0 +1,12 @@
+$kind: http-request
+name: 'Get my user id'
+method: GET
+url: '{{base_url}}/api/v1/auth/me'
+order: 500
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 200) {
+        pm.environment.set('user_id', pm.response.json().id);
+      }

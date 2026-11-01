@@ -1,0 +1,8 @@
+$kind: collection
+name: 'SEIKA - Financeiro'
+description: 'Cobranças, pagamentos, estornos, mensalidades e despesas (Fase 4). Rode antes: SEIKA - Auth > Login e SEIKA - Processos > Create processo (popula {{empresa_id}} com cobrança vinculada).'
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'

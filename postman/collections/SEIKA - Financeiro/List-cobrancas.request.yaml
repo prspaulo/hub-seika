@@ -1,0 +1,19 @@
+$kind: http-request
+name: 'List cobrancas'
+method: GET
+url: '{{base_url}}/api/v1/financeiro/cobrancas'
+order: 1000
+queryParams:
+  - key: empresaId
+    value: '{{empresa_id}}'
+    disabled: true
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 200) {
+        const body = pm.response.json();
+        if (body.items && body.items.length) {
+          pm.environment.set('cobranca_id', body.items[0].id);
+        }
+      }

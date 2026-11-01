@@ -1,0 +1,12 @@
+$kind: http-request
+name: 'List processos'
+method: GET
+url: '{{base_url}}/api/v1/processos'
+order: 2000
+queryParams:
+  - key: owner
+    value: '{{user_id}}'
+    disabled: true
+  - key: status
+    value: ''
+    disabled: true

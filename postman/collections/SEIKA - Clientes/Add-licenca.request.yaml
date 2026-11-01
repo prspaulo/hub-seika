@@ -1,0 +1,23 @@
+$kind: http-request
+name: 'Add licenca'
+method: POST
+url: '{{base_url}}/api/v1/empresas/{{empresa_id}}/licencas'
+order: 5000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "Alvará de funcionamento",
+      "numero": "AL-2026-001",
+      "validade": "2027-01-01"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set('licenca_id', pm.response.json().id);
+      }

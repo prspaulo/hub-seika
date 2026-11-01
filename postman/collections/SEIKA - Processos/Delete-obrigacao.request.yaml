@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'Delete obrigacao'
+method: DELETE
+url: '{{base_url}}/api/v1/obrigacoes/{{obrigacao_id}}'
+order: 7000

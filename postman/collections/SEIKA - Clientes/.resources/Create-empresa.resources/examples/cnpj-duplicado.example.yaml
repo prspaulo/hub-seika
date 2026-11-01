@@ -1,0 +1,18 @@
+$kind: http-example
+name: 'cnpj duplicado'
+request:
+  url: '{{base_url}}/api/v1/empresas'
+  method: POST
+response:
+  statusCode: 409
+  statusText: Conflict
+  headers:
+    - key: content-type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "error": "CNPJ_DUPLICADO",
+        "message": "CNPJ já cadastrado"
+      }

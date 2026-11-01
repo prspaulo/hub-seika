@@ -1,0 +1,23 @@
+$kind: http-request
+method: POST
+url: '{{base_url}}/api/v1/auth/login'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{socio_email}}",
+      "password": "{{socio_password}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const data = pm.response.json();
+      if (data.accessToken) {
+        pm.environment.set('access_token', data.accessToken);
+      }
+examples: './.resources/Login.resources/examples/'

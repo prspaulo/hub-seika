@@ -1,0 +1,34 @@
+$kind: http-example
+name: sucesso
+request:
+  url: '{{base_url}}/api/v1/processos'
+  method: POST
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    - key: content-type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "id": "<uuid>",
+        "empresaId": "<uuid>",
+        "owner": "<uuid>",
+        "setor": "LEGALIZACAO",
+        "nome": "Abertura de empresa",
+        "status": "A_FAZER",
+        "valorInicialCentavos": 150000,
+        "descontoTipo": "PERCENTUAL",
+        "descontoCentavos": null,
+        "descontoPercentual": 10,
+        "valorFinalCentavos": 135000,
+        "prazo": "2026-12-01T00:00:00.000Z",
+        "vencimentoCobranca": "2026-12-05T00:00:00.000Z",
+        "coraSolicitado": true,
+        "concluidoEm": null,
+        "valorInicial": 1500,
+        "desconto": 10,
+        "valorFinal": 1350
+      }

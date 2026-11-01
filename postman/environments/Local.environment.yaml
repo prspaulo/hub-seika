@@ -1,0 +1,43 @@
+name: Local
+values:
+  - key: base_url
+    value: http://localhost:3001
+    enabled: true
+    type: default
+    description: URL do backend em dev (docker compose)
+  - key: socio_email
+    value: paulo.gomes@seika.com.br
+    enabled: true
+    type: default
+    description: E-mail de um dos sócios seedados
+  - key: socio_password
+    value: ''
+    enabled: true
+    type: secret
+    description: Preencher manualmente com a senha temporária impressa pelo seed (não commitar)
+  - key: access_token
+    value: ''
+    enabled: true
+    type: secret
+    description: Preenchido automaticamente pelo script da requisição de login/refresh
+  - key: empresa_id
+    value: ''
+    enabled: true
+  - key: licenca_id
+    value: ''
+    enabled: true
+  - key: user_id
+    value: ''
+    enabled: true
+  - key: processo_id
+    value: ''
+    enabled: true
+  - key: obrigacao_id
+    value: ''
+    enabled: true
+  - key: cobranca_id
+    value: ''
+    enabled: true
+  - key: virtual_cobranca_id
+    value: ''
+    enabled: true

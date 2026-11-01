@@ -1,0 +1,23 @@
+$kind: http-request
+name: 'Create obrigacao'
+method: POST
+url: '{{base_url}}/api/v1/obrigacoes'
+order: 4000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "owner": "{{user_id}}",
+      "titulo": "Declaração mensal DAS",
+      "prazo": "2026-11-20"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set('obrigacao_id', pm.response.json().id);
+      }
