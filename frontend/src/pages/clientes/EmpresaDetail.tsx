@@ -1,10 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "../../lib/useApiClient";
-import { formatCnpj, type Empresa, type Licenca } from "../../types/empresa";
+import {
+  NATUREZA_JURIDICA_LABEL,
+  ORGAO_REGISTRO_LABEL,
+  PORTE_EMPRESA_LABEL,
+  certificadoVencimentoStatus,
+  formatCnpj,
+  formatDate,
+  type Empresa,
+  type Filial,
+  type Licenca,
+  type NaturezaJuridica,
+  type OrgaoRegistro,
+  type PorteEmpresa,
+  type SocioAdministrador,
+} from "../../types/empresa";
 
-type EmpresaDetailData = Empresa & { licencas: Licenca[] };
+type EmpresaDetailData = Empresa & {
+  licencas: Licenca[];
+  sociosAdministradores: SocioAdministrador[];
+  filiais: Filial[];
+};
 
 type Mensalidade = {
   valor: number;
@@ -20,12 +38,16 @@ const EMPTY_MENSALIDADE_FORM = {
   ativaDesde: new Date().toISOString().slice(0, 10),
   ativo: true,
 };
+const EMPTY_SOCIO_FORM = { nome: "", cpf: "" };
+const EMPTY_FILIAL_FORM = { nome: "", cnpj: "", enderecoCidade: "", enderecoUf: "" };
 
 export function EmpresaDetail() {
   const { id } = useParams<{ id: string }>();
   const api = useApiClient();
   const queryClient = useQueryClient();
   const [licencaForm, setLicencaForm] = useState(EMPTY_LICENCA_FORM);
+  const [socioForm, setSocioForm] = useState(EMPTY_SOCIO_FORM);
+  const [filialForm, setFilialForm] = useState(EMPTY_FILIAL_FORM);
 
   const { data: empresa, isLoading } = useQuery({
     queryKey: ["empresa", id],
@@ -56,6 +78,42 @@ export function EmpresaDetail() {
       setLicencaForm(EMPTY_LICENCA_FORM);
       invalidate();
     },
+  });
+
+  const addSocioMutation = useMutation({
+    mutationFn: () =>
+      api.post(`/api/v1/empresas/${id}/socios-administradores`, {
+        nome: socioForm.nome,
+        ...(socioForm.cpf ? { cpf: socioForm.cpf } : {}),
+      }),
+    onSuccess: () => {
+      setSocioForm(EMPTY_SOCIO_FORM);
+      invalidate();
+    },
+  });
+
+  const deleteSocioMutation = useMutation({
+    mutationFn: (socioId: string) => api.del(`/api/v1/empresas/${id}/socios-administradores/${socioId}`),
+    onSuccess: invalidate,
+  });
+
+  const addFilialMutation = useMutation({
+    mutationFn: () =>
+      api.post(`/api/v1/empresas/${id}/filiais`, {
+        nome: filialForm.nome,
+        cnpj: filialForm.cnpj,
+        ...(filialForm.enderecoCidade ? { enderecoCidade: filialForm.enderecoCidade } : {}),
+        ...(filialForm.enderecoUf ? { enderecoUf: filialForm.enderecoUf } : {}),
+      }),
+    onSuccess: () => {
+      setFilialForm(EMPTY_FILIAL_FORM);
+      invalidate();
+    },
+  });
+
+  const deleteFilialMutation = useMutation({
+    mutationFn: (filialId: string) => api.del(`/api/v1/empresas/${id}/filiais/${filialId}`),
+    onSuccess: invalidate,
   });
 
   const { data: mensalidade } = useQuery({
@@ -124,7 +182,220 @@ export function EmpresaDetail() {
               onBlur={(event) => updateMutation.mutate({ telefone: event.target.value })}
             />
           </label>
+          <label>
+            Cliente Seika desde
+            <input
+              key={`clienteDesde-${empresa.updatedAt}`}
+              type="date"
+              defaultValue={empresa.clienteDesde?.slice(0, 10) ?? ""}
+              onBlur={(event) => updateMutation.mutate({ clienteDesde: event.target.value })}
+            />
+          </label>
+          <label>
+            Capital social (R$)
+            <input
+              key={`capitalSocial-${empresa.updatedAt}`}
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={empresa.capitalSocial ?? ""}
+              onBlur={(event) => updateMutation.mutate({ capitalSocial: Number(event.target.value) })}
+            />
+          </label>
+          <label>
+            Natureza jurídica
+            <select
+              key={`naturezaJuridica-${empresa.updatedAt}`}
+              defaultValue={empresa.naturezaJuridica ?? ""}
+              onChange={(event) =>
+                updateMutation.mutate({ naturezaJuridica: event.target.value as NaturezaJuridica })
+              }
+            >
+              <option value="">Selecione...</option>
+              {Object.entries(NATUREZA_JURIDICA_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Porte da empresa
+            <select
+              key={`porte-${empresa.updatedAt}`}
+              defaultValue={empresa.porte ?? ""}
+              onChange={(event) => updateMutation.mutate({ porte: event.target.value as PorteEmpresa })}
+            >
+              <option value="">Selecione...</option>
+              {Object.entries(PORTE_EMPRESA_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Órgão de registro
+            <select
+              key={`orgaoRegistro-${empresa.updatedAt}`}
+              defaultValue={empresa.orgaoRegistro ?? ""}
+              onChange={(event) =>
+                updateMutation.mutate({ orgaoRegistro: event.target.value as OrgaoRegistro })
+              }
+            >
+              <option value="">Selecione...</option>
+              {Object.entries(ORGAO_REGISTRO_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tipo de atividade
+            <input
+              key={`tipoAtividade-${empresa.updatedAt}`}
+              defaultValue={empresa.tipoAtividade ?? ""}
+              onBlur={(event) => updateMutation.mutate({ tipoAtividade: event.target.value })}
+            />
+          </label>
+          <label>
+            Inscrição municipal
+            <input
+              key={`inscricaoMunicipal-${empresa.updatedAt}`}
+              defaultValue={empresa.inscricaoMunicipal ?? ""}
+              onBlur={(event) => updateMutation.mutate({ inscricaoMunicipal: event.target.value })}
+            />
+          </label>
+          <label>
+            Inscrição estadual
+            <input
+              key={`inscricaoEstadual-${empresa.updatedAt}`}
+              defaultValue={empresa.inscricaoEstadual ?? ""}
+              onBlur={(event) => updateMutation.mutate({ inscricaoEstadual: event.target.value })}
+            />
+          </label>
+          <label>
+            NIRE
+            <input
+              key={`nire-${empresa.updatedAt}`}
+              defaultValue={empresa.nire ?? ""}
+              onBlur={(event) => updateMutation.mutate({ nire: event.target.value })}
+            />
+          </label>
         </div>
+
+        <h3 style={{ marginTop: 20 }}>Endereço</h3>
+        <div className="formgrid">
+          <label>
+            Logradouro
+            <input
+              key={`logradouro-${empresa.updatedAt}`}
+              defaultValue={empresa.enderecoLogradouro ?? ""}
+              onBlur={(event) => updateMutation.mutate({ enderecoLogradouro: event.target.value })}
+            />
+          </label>
+          <label>
+            Número
+            <input
+              key={`numero-${empresa.updatedAt}`}
+              defaultValue={empresa.enderecoNumero ?? ""}
+              onBlur={(event) => updateMutation.mutate({ enderecoNumero: event.target.value })}
+            />
+          </label>
+          <label>
+            Complemento
+            <input
+              key={`complemento-${empresa.updatedAt}`}
+              defaultValue={empresa.enderecoComplemento ?? ""}
+              onBlur={(event) => updateMutation.mutate({ enderecoComplemento: event.target.value })}
+            />
+          </label>
+          <label>
+            Bairro
+            <input
+              key={`bairro-${empresa.updatedAt}`}
+              defaultValue={empresa.enderecoBairro ?? ""}
+              onBlur={(event) => updateMutation.mutate({ enderecoBairro: event.target.value })}
+            />
+          </label>
+          <label>
+            Cidade
+            <input
+              key={`cidade-${empresa.updatedAt}`}
+              defaultValue={empresa.enderecoCidade ?? ""}
+              onBlur={(event) => updateMutation.mutate({ enderecoCidade: event.target.value })}
+            />
+          </label>
+          <label>
+            UF
+            <input
+              key={`uf-${empresa.updatedAt}`}
+              maxLength={2}
+              defaultValue={empresa.enderecoUf ?? ""}
+              onBlur={(event) => updateMutation.mutate({ enderecoUf: event.target.value.toUpperCase() })}
+            />
+          </label>
+          <label>
+            CEP
+            <input
+              key={`cep-${empresa.updatedAt}`}
+              defaultValue={empresa.enderecoCep ?? ""}
+              onBlur={(event) => updateMutation.mutate({ enderecoCep: event.target.value })}
+            />
+          </label>
+        </div>
+
+        <h3 style={{ marginTop: 20 }}>Certificado digital</h3>
+        <div className="formgrid">
+          <label>
+            Link do certificado
+            <input
+              key={`certUrl-${empresa.updatedAt}`}
+              type="url"
+              placeholder="https://drive.google.com/..."
+              defaultValue={empresa.certificadoDigitalUrl ?? ""}
+              onBlur={(event) => updateMutation.mutate({ certificadoDigitalUrl: event.target.value })}
+            />
+          </label>
+          <label>
+            Vencimento
+            <input
+              key={`certVenc-${empresa.updatedAt}`}
+              type="date"
+              defaultValue={empresa.certificadoDigitalVencimento?.slice(0, 10) ?? ""}
+              onBlur={(event) => updateMutation.mutate({ certificadoDigitalVencimento: event.target.value })}
+            />
+          </label>
+        </div>
+        {empresa.certificadoDigitalVencimento &&
+          (() => {
+            const status = certificadoVencimentoStatus(empresa.certificadoDigitalVencimento);
+            if (!status) return null;
+            const label =
+              status === "vencido"
+                ? "Certificado vencido"
+                : status === "vence_em_breve"
+                  ? "Certificado vence em breve"
+                  : "Certificado válido";
+            const cls = status === "vencido" ? "inativa" : status === "vence_em_breve" ? "suspensa" : "ativa";
+            return (
+              <span className={`badge ${cls}`}>
+                {label} ({formatDate(empresa.certificadoDigitalVencimento)})
+              </span>
+            );
+          })()}
+
+        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20 }}>
+          <input
+            type="checkbox"
+            style={{ width: "auto", margin: 0 }}
+            checked={empresa.temFilial}
+            onChange={(event) => updateMutation.mutate({ temFilial: event.target.checked })}
+          />
+          Empresa possui filial
+        </label>
+
         {updateMutation.isError && <p className="form-error">Não foi possível salvar a alteração.</p>}
         {empresa.status !== "INATIVA" && (
           <button type="button" className="danger" onClick={() => deleteMutation.mutate()}>
@@ -132,6 +403,154 @@ export function EmpresaDetail() {
           </button>
         )}
       </div>
+
+      <div className="card">
+        <h3>Sócio(s) administrador(es) responsável(eis)</h3>
+        {empresa.sociosAdministradores.length === 0 ? (
+          <p className="empty">Nenhum sócio administrador cadastrado.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {empresa.sociosAdministradores.map((socio) => (
+                <tr key={socio.id}>
+                  <td>{socio.nome}</td>
+                  <td>{socio.cpf ?? "-"}</td>
+                  <td>
+                    <button type="button" className="quiet" onClick={() => deleteSocioMutation.mutate(socio.id)}>
+                      Remover
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        <form
+          className="formgrid"
+          style={{ marginTop: 16 }}
+          onSubmit={(event: FormEvent) => {
+            event.preventDefault();
+            addSocioMutation.mutate();
+          }}
+        >
+          <label>
+            Nome
+            <input
+              required
+              value={socioForm.nome}
+              onChange={(event) => setSocioForm((prev) => ({ ...prev, nome: event.target.value }))}
+            />
+          </label>
+          <label>
+            CPF
+            <input
+              value={socioForm.cpf}
+              onChange={(event) => setSocioForm((prev) => ({ ...prev, cpf: event.target.value }))}
+            />
+          </label>
+          {addSocioMutation.isError && <p className="form-error wide">Não foi possível adicionar o sócio.</p>}
+          <div className="wide">
+            <button type="submit" className="primary">
+              Adicionar sócio administrador
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {empresa.temFilial && (
+        <div className="card">
+          <h3>Filiais</h3>
+          {empresa.filiais.length === 0 ? (
+            <p className="empty">Nenhuma filial cadastrada.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CNPJ</th>
+                  <th>Cidade/UF</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {empresa.filiais.map((filial) => (
+                  <tr key={filial.id}>
+                    <td>{filial.nome}</td>
+                    <td>{formatCnpj(filial.cnpj)}</td>
+                    <td>
+                      {filial.enderecoCidade ?? "-"}
+                      {filial.enderecoUf ? `/${filial.enderecoUf}` : ""}
+                    </td>
+                    <td>
+                      <button type="button" className="quiet" onClick={() => deleteFilialMutation.mutate(filial.id)}>
+                        Remover
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <form
+            className="formgrid"
+            style={{ marginTop: 16 }}
+            onSubmit={(event: FormEvent) => {
+              event.preventDefault();
+              addFilialMutation.mutate();
+            }}
+          >
+            <label>
+              Nome
+              <input
+                required
+                value={filialForm.nome}
+                onChange={(event) => setFilialForm((prev) => ({ ...prev, nome: event.target.value }))}
+              />
+            </label>
+            <label>
+              CNPJ
+              <input
+                required
+                placeholder="00.000.000/0000-00"
+                value={filialForm.cnpj}
+                onChange={(event) => setFilialForm((prev) => ({ ...prev, cnpj: event.target.value }))}
+              />
+            </label>
+            <label>
+              Cidade
+              <input
+                value={filialForm.enderecoCidade}
+                onChange={(event) => setFilialForm((prev) => ({ ...prev, enderecoCidade: event.target.value }))}
+              />
+            </label>
+            <label>
+              UF
+              <input
+                maxLength={2}
+                value={filialForm.enderecoUf}
+                onChange={(event) =>
+                  setFilialForm((prev) => ({ ...prev, enderecoUf: event.target.value.toUpperCase() }))
+                }
+              />
+            </label>
+            {addFilialMutation.isError && <p className="form-error wide">Não foi possível adicionar a filial.</p>}
+            <div className="wide">
+              <button type="submit" className="primary">
+                Adicionar filial
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="card">
         <h3>Licenças</h3>

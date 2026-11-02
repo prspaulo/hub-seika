@@ -1,0 +1,24 @@
+$kind: http-request
+name: 'Add filial'
+method: POST
+url: '{{base_url}}/api/v1/empresas/{{empresa_id}}/filiais'
+order: 7300
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Filial Centro",
+      "cnpj": "11.444.777/0001-61",
+      "enderecoCidade": "Betim",
+      "enderecoUf": "MG"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set('filial_id', pm.response.json().id);
+      }

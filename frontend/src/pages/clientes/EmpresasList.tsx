@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useApiClient } from "../../lib/useApiClient";
-import { formatCnpj, type Empresa } from "../../types/empresa";
+import { formatCnpj, formatDate, type Empresa } from "../../types/empresa";
 
 type ListResponse = { items: Empresa[]; total: number; page: number; pageSize: number };
 
@@ -47,6 +47,7 @@ export function EmpresasList() {
               <tr>
                 <th>Razão social</th>
                 <th>CNPJ</th>
+                <th>Cliente desde</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -59,6 +60,7 @@ export function EmpresasList() {
                     {empresa.nomeFantasia && <div className="muted">{empresa.nomeFantasia}</div>}
                   </td>
                   <td>{formatCnpj(empresa.cnpj)}</td>
+                  <td>{empresa.clienteDesde ? formatDate(empresa.clienteDesde) : "-"}</td>
                   <td>
                     <span className={`badge ${empresa.status.toLowerCase()}`}>{empresa.status}</span>
                   </td>

@@ -44,3 +44,9 @@ values:
   - key: material_id
     value: ''
     enabled: true
+  - key: socio_administrador_id
+    value: ''
+    enabled: true
+  - key: filial_id
+    value: ''
+    enabled: true

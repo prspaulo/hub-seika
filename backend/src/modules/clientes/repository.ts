@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "../../shared/prisma.js";
+import { prisma, type Db } from "../../shared/prisma.js";
 import type { ListEmpresasQuery } from "./types.js";
 
 export const empresasRepository = {
@@ -31,7 +31,10 @@ export const empresasRepository = {
   },
 
   findById(id: string) {
-    return prisma.empresa.findUnique({ where: { id }, include: { licencas: true } });
+    return prisma.empresa.findUnique({
+      where: { id },
+      include: { licencas: true, sociosAdministradores: true, filiais: true },
+    });
   },
 
   findByCnpj(cnpj: string) {
@@ -47,8 +50,8 @@ export const empresasRepository = {
     });
   },
 
-  create(data: Prisma.EmpresaCreateInput) {
-    return prisma.empresa.create({ data });
+  create(data: Prisma.EmpresaCreateInput, db: Db = prisma) {
+    return db.empresa.create({ data });
   },
 
   update(id: string, data: Prisma.EmpresaUpdateInput) {
@@ -73,5 +76,37 @@ export const empresasRepository = {
 
   deleteLicenca(id: string) {
     return prisma.licenca.delete({ where: { id } });
+  },
+
+  createSocioAdministrador(empresaId: string, data: Prisma.SocioAdministradorCreateWithoutEmpresaInput) {
+    return prisma.socioAdministrador.create({ data: { ...data, empresaId } });
+  },
+
+  findSocioAdministradorById(id: string) {
+    return prisma.socioAdministrador.findUnique({ where: { id } });
+  },
+
+  updateSocioAdministrador(id: string, data: Prisma.SocioAdministradorUpdateInput) {
+    return prisma.socioAdministrador.update({ where: { id }, data });
+  },
+
+  deleteSocioAdministrador(id: string) {
+    return prisma.socioAdministrador.delete({ where: { id } });
+  },
+
+  createFilial(empresaId: string, data: Prisma.FilialCreateWithoutEmpresaInput) {
+    return prisma.filial.create({ data: { ...data, empresaId } });
+  },
+
+  findFilialById(id: string) {
+    return prisma.filial.findUnique({ where: { id } });
+  },
+
+  updateFilial(id: string, data: Prisma.FilialUpdateInput) {
+    return prisma.filial.update({ where: { id }, data });
+  },
+
+  deleteFilial(id: string) {
+    return prisma.filial.delete({ where: { id } });
   },
 };

@@ -10,5 +10,9 @@ body:
   type: json
   content: |-
     {
-      "telefone": "19999998888"
+      "telefone": "19999998888",
+      "capitalSocial": 75000,
+      "naturezaJuridica": "LTDA",
+      "porte": "EPP",
+      "orgaoRegistro": "JUNTA_COMERCIAL"
     }

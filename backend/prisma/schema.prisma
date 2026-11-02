@@ -53,6 +53,34 @@ enum EmpresaStatus {
   @@schema("clientes")
 }
 
+enum NaturezaJuridica {
+  LTDA
+  SA
+  EI
+  SOCIEDADE_SIMPLES
+  MEI
+  COOPERATIVA
+  ASSOCIACAO
+
+  @@schema("clientes")
+}
+
+enum PorteEmpresa {
+  ME
+  EPP
+  DEMAIS
+
+  @@schema("clientes")
+}
+
+enum OrgaoRegistro {
+  OAB
+  JUNTA_COMERCIAL
+  CARTORIO
+
+  @@schema("clientes")
+}
+
 model Empresa {
   id           String        @id @default(uuid())
   razaoSocial  String
@@ -62,10 +90,71 @@ model Empresa {
   status       EmpresaStatus @default(ATIVA)
   email        String?
   telefone     String?
+  // Desde quando a empresa é cliente da Seika (início das obrigações) —
+  // distinto de createdAt, que é só quando o cadastro foi digitado no sistema.
+  clienteDesde         DateTime?
+  capitalSocialCentavos Int?
+  inscricaoMunicipal   String?
+  inscricaoEstadual    String?
+  nire                 String?
+  enderecoLogradouro   String?
+  enderecoNumero       String?
+  enderecoComplemento  String?
+  enderecoBairro       String?
+  enderecoCidade       String?
+  enderecoUf           String?
+  enderecoCep          String?
+  temFilial            Boolean          @default(false)
+  naturezaJuridica     NaturezaJuridica?
+  porte                PorteEmpresa?
+  orgaoRegistro        OrgaoRegistro?
+  tipoAtividade        String?
+  // Só o link onde o certificado está guardado (Drive/cofre externo) + a
+  // data de vencimento — igual à decisão de segurança do Acervo (Fase 5):
+  // o sistema nunca armazena o arquivo do certificado em si.
+  certificadoDigitalUrl        String?
+  certificadoDigitalVencimento DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   licencas     Licenca[]
+  sociosAdministradores SocioAdministrador[]
+  filiais      Filial[]
 
+  @@schema("clientes")
+}
+
+model SocioAdministrador {
+  id        String   @id @default(uuid())
+  empresaId String
+  empresa   Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  nome      String
+  cpf       String?
+  email     String?
+  telefone  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([empresaId])
+  @@schema("clientes")
+}
+
+model Filial {
+  id                  String   @id @default(uuid())
+  empresaId           String
+  empresa             Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  nome                String
+  cnpj                String   @unique
+  enderecoLogradouro  String?
+  enderecoNumero      String?
+  enderecoComplemento String?
+  enderecoBairro      String?
+  enderecoCidade      String?
+  enderecoUf          String?
+  enderecoCep         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([empresaId])
   @@schema("clientes")
 }
 
@@ -304,3 +393,4 @@ model MaterialAcervo {
   @@index([area])
   @@schema("acervo")
 }
+

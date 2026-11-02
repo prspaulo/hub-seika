@@ -24,22 +24,8 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: "Ferramentas & conhecimento",
     items: [
-      { label: "Ferramentas e Hub", phase: "Fase 6" },
+      { label: "Ferramentas e Hub", path: "/ferramentas" },
       { label: "Academia e Acervo", path: "/acervo" },
-    ],
-  },
-  {
-    title: "Relacionamento & crescimento",
-    items: [
-      { label: "Contatos", phase: "Fase 6" },
-      { label: "Leads Marketing", phase: "Fase 6" },
-      { label: "War Room HQ", phase: "Fase 6" },
-      { label: "Plano 30 dias", phase: "Fase 6" },
-      { label: "Arsenal & Objeções", phase: "Fase 6" },
-      { label: "Playbook de Prospecção", phase: "Fase 6" },
-      { label: "Preços & Proposta", phase: "Fase 6" },
-      { label: "Canais & Ads", phase: "Fase 6" },
-      { label: "Conquistas", phase: "Fase 6" },
     ],
   },
 ];

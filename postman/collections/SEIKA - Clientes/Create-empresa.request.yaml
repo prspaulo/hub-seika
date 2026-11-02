@@ -13,7 +13,24 @@ body:
       "razaoSocial": "Confeitaria São José LTDA",
       "nomeFantasia": "São José",
       "cnpj": "45.723.174/0001-10",
-      "email": "contato@saojose.com.br"
+      "email": "contato@saojose.com.br",
+      "clienteDesde": "2024-03-01",
+      "capitalSocial": 50000,
+      "inscricaoMunicipal": "123456-7",
+      "inscricaoEstadual": "062.345.678.0012",
+      "nire": "31300012345",
+      "enderecoLogradouro": "Rua das Flores",
+      "enderecoNumero": "123",
+      "enderecoCidade": "Belo Horizonte",
+      "enderecoUf": "MG",
+      "enderecoCep": "30130-000",
+      "naturezaJuridica": "LTDA",
+      "porte": "ME",
+      "orgaoRegistro": "JUNTA_COMERCIAL",
+      "tipoAtividade": "Fabricação de produtos de panificação",
+      "certificadoDigitalUrl": "https://drive.google.com/drive/folders/exemplo",
+      "certificadoDigitalVencimento": "2027-06-01",
+      "temFilial": false
     }
 scripts:
   - type: afterResponse

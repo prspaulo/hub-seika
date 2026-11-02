@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'Delete socio administrador'
+method: DELETE
+url: '{{base_url}}/api/v1/empresas/{{empresa_id}}/socios-administradores/{{socio_administrador_id}}'
+order: 7200

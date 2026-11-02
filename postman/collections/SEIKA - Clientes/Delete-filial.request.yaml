@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'Delete filial'
+method: DELETE
+url: '{{base_url}}/api/v1/empresas/{{empresa_id}}/filiais/{{filial_id}}'
+order: 7400
