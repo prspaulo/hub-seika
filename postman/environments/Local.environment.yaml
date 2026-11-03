@@ -50,3 +50,6 @@ values:
   - key: filial_id
     value: ''
     enabled: true
+  - key: obrigacao_template_id
+    value: ''
+    enabled: true

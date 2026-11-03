@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'Get obrigacao template'
+method: GET
+url: '{{base_url}}/api/v1/obrigacoes/templates/{{obrigacao_template_id}}'
+order: 9500

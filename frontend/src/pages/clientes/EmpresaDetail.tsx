@@ -3,18 +3,25 @@ import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "../../lib/useApiClient";
 import {
+  CARACTERISTICAS_FISCAIS,
+  LUCRO_REAL_APURACAO_LABEL,
+  NATUREZA_ATIVIDADE_LABEL,
   NATUREZA_JURIDICA_LABEL,
   ORGAO_REGISTRO_LABEL,
   PORTE_EMPRESA_LABEL,
+  REGIME_TRIBUTARIO_LABEL,
   certificadoVencimentoStatus,
   formatCnpj,
   formatDate,
   type Empresa,
   type Filial,
   type Licenca,
+  type LucroRealApuracao,
+  type NaturezaAtividade,
   type NaturezaJuridica,
   type OrgaoRegistro,
   type PorteEmpresa,
+  type RegimeTributario,
   type SocioAdministrador,
 } from "../../types/empresa";
 
@@ -260,6 +267,59 @@ export function EmpresaDetail() {
             />
           </label>
           <label>
+            Regime tributário
+            <select
+              key={`regimeTributario-${empresa.updatedAt}`}
+              defaultValue={empresa.regimeTributario ?? ""}
+              onChange={(event) =>
+                updateMutation.mutate({ regimeTributario: event.target.value as RegimeTributario })
+              }
+            >
+              <option value="">Selecione...</option>
+              {Object.entries(REGIME_TRIBUTARIO_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {empresa.regimeTributario === "LUCRO_REAL" && (
+            <label>
+              Apuração do Lucro Real
+              <select
+                key={`lucroRealApuracao-${empresa.updatedAt}`}
+                defaultValue={empresa.lucroRealApuracao ?? ""}
+                onChange={(event) =>
+                  updateMutation.mutate({ lucroRealApuracao: event.target.value as LucroRealApuracao })
+                }
+              >
+                <option value="">Selecione...</option>
+                {Object.entries(LUCRO_REAL_APURACAO_LABEL).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <label>
+            Natureza da atividade
+            <select
+              key={`naturezaAtividade-${empresa.updatedAt}`}
+              defaultValue={empresa.naturezaAtividade ?? ""}
+              onChange={(event) =>
+                updateMutation.mutate({ naturezaAtividade: event.target.value as NaturezaAtividade })
+              }
+            >
+              <option value="">Selecione...</option>
+              {Object.entries(NATUREZA_ATIVIDADE_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
             Inscrição municipal
             <input
               key={`inscricaoMunicipal-${empresa.updatedAt}`}
@@ -402,6 +462,27 @@ export function EmpresaDetail() {
             Desativar empresa
           </button>
         )}
+      </div>
+
+      <div className="card">
+        <h3>Características fiscais</h3>
+        <p className="muted" style={{ marginTop: -6, marginBottom: 14 }}>
+          Alimenta o Motor de Obrigações — define quais obrigações fiscais/pessoais se aplicam a esta
+          empresa.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px 16px" }}>
+          {CARACTERISTICAS_FISCAIS.map((c) => (
+            <label key={c.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                style={{ width: "auto", margin: 0 }}
+                checked={empresa[c.key]}
+                onChange={(event) => updateMutation.mutate({ [c.key]: event.target.checked })}
+              />
+              {c.label}
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="card">

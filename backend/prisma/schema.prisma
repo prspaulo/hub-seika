@@ -81,6 +81,32 @@ enum OrgaoRegistro {
   @@schema("clientes")
 }
 
+// Regime tributário de verdade (distinto de NaturezaJuridica) — 1º nível da
+// árvore de decisão do Motor de Obrigações (Cartilha SEIKA).
+enum RegimeTributario {
+  SIMPLES_NACIONAL
+  LUCRO_PRESUMIDO
+  LUCRO_REAL
+
+  @@schema("clientes")
+}
+
+enum LucroRealApuracao {
+  TRIMESTRAL
+  ANUAL_ESTIMATIVA
+
+  @@schema("clientes")
+}
+
+// 2º nível da árvore de decisão — distinto de tipoAtividade (texto livre/CNAE).
+enum NaturezaAtividade {
+  SERVICO
+  COMERCIO
+  MISTA
+
+  @@schema("clientes")
+}
+
 model Empresa {
   id           String        @id @default(uuid())
   razaoSocial  String
@@ -109,6 +135,30 @@ model Empresa {
   porte                PorteEmpresa?
   orgaoRegistro        OrgaoRegistro?
   tipoAtividade        String?
+  // Entrada da árvore de decisão do Motor de Obrigações (Cartilha SEIKA).
+  regimeTributario     RegimeTributario?
+  // Só relevante quando regimeTributario = LUCRO_REAL (pergunta obrigatória
+  // da seção 5 da cartilha).
+  lucroRealApuracao    LucroRealApuracao?
+  naturezaAtividade    NaturezaAtividade?
+  // Características fiscais (checklist da seção 9 da cartilha) — alimentam
+  // o motor de geração de obrigações (Fase C). "Possui movimento no período"
+  // fica de fora de propósito: varia todo mês, não é característica fixa.
+  possuiEmpregados          Boolean @default(false)
+  possuiProLabore           Boolean @default(false)
+  possuiAutonomosRpa        Boolean @default(false)
+  contribuinteIcms          Boolean @default(false)
+  contribuinteIss           Boolean @default(false)
+  contribuinteIpi           Boolean @default(false)
+  possuiIcmsSt              Boolean @default(false)
+  possuiDifal               Boolean @default(false)
+  possuiAntecipacaoTributaria Boolean @default(false)
+  possuiRetencoesFederais   Boolean @default(false)
+  possuiRetencaoInss        Boolean @default(false)
+  possuiRetencaoIss         Boolean @default(false)
+  possuiCprb                Boolean @default(false)
+  sujeitoFatorR             Boolean @default(false)
+  possuiSstObrigatorio      Boolean @default(false)
   // Só o link onde o certificado está guardado (Drive/cofre externo) + a
   // data de vencimento — igual à decisão de segurança do Acervo (Fase 5):
   // o sistema nunca armazena o arquivo do certificado em si.
@@ -239,21 +289,135 @@ model Processo {
   @@schema("processos")
 }
 
+// Status próprio de Obrigacao (distinto de StatusTarefa, que Processo
+// continua usando — são ciclos de vida diferentes). "Vencido" (interno ou
+// legal) não é um valor gravado aqui — é calculado na view comparando o
+// status atual com a data de hoje, igual a `Cobranca.statusComputado`.
+enum StatusObrigacao {
+  AGUARDANDO_DOCUMENTOS
+  EM_ANALISE
+  EM_PROCESSAMENTO
+  EM_CONFERENCIA
+  CONCLUIDA
+  NAO_APLICAVEL
+
+  @@schema("processos")
+}
+
 model Obrigacao {
-  id        String       @id @default(uuid())
+  id        String          @id @default(uuid())
   empresaId String?
   owner     String
   titulo    String
+  // Prazo interno Seika — o que toda a UI já usa pra ordenar/cobrar.
   prazo     DateTime
-  status    StatusTarefa @default(A_FAZER)
+  status    StatusObrigacao @default(AGUARDANDO_DOCUMENTOS)
   notas     String?
+  // Preenchidos só quando a obrigação vem do Motor de Obrigações (Fase C) —
+  // null quando é uma obrigação manual/avulsa, como sempre funcionou.
+  templateId  String?
+  competencia String? // "YYYY-MM"
+  departamento Setor?
+  prazoLegal   DateTime?
+  semMovimento Boolean   @default(false)
+  // "gerado:<templateId>:<empresaId>:<competencia>" — garante que o motor
+  // nunca duplica a mesma obrigação pra mesma empresa/competência (mesmo
+  // espírito do `chaveMensal` de Mensalidade→Cobranca).
+  chaveGeracao String?  @unique
   createdBy String
   updatedBy String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   @@index([empresaId])
   @@index([owner])
+  @@index([templateId])
+  @@schema("processos")
+}
+
+enum Periodicidade {
+  MENSAL
+  TRIMESTRAL
+  ANUAL
+  EVENTUAL
+
+  @@schema("processos")
+}
+
+// Catálogo de regras do Motor de Obrigações (Cartilha SEIKA) — cruza regime
+// tributário + natureza da atividade + características da empresa pra saber
+// quais obrigações se aplicam a cada cliente. Fase C usa este catálogo pra
+// gerar as instâncias reais de `Obrigacao` por competência.
+//
+// Os 15 campos `exigeX` espelham 1:1 os 15 booleanos de características
+// fiscais do model `Empresa` (módulo clientes) — o motor casa
+// `exigeEmpregados` com `possuiEmpregados`, `exigeIcms` com
+// `contribuinteIcms`, `exigeFatorR` com `sujeitoFatorR`, etc. `false` = não é
+// condição de habilitação pra este template (não exige nada); `true` = só
+// habilita se a empresa também tiver essa característica marcada.
+model ObrigacaoTemplate {
+  id     String @id @default(uuid())
+  codigo String @unique
+  nome   String
+  // Como a cartilha agrupa na tabela de origem: Federal, Estadual, Municipal,
+  // Retenções, Pessoal, Anual, Contábil, Documentos, Estoque, IRPJ/CSLL...
+  grupo        String
+  // Responsável interno (reaproveita o enum já usado em Processo).
+  departamento Setor
+
+  regimesAplicaveis    RegimeTributario[]
+  atividadesAplicaveis NaturezaAtividade[]
+  // Só relevante quando LUCRO_REAL está entre os regimes aplicáveis — se
+  // preenchido, só habilita pra empresas com esse valor exato em
+  // Empresa.lucroRealApuracao (null = não filtra por isso).
+  exigeLucroRealApuracao LucroRealApuracao?
+
+  periodicidade    Periodicidade
+  // Em quais meses do ano (1-12) a competência desta obrigação cai. Mensal =
+  // todos os 12; trimestral/anual = só os meses de fechamento relevantes.
+  mesesCompetencia Int[]
+  regraCompetencia String? // texto livre, ex: "Mês anterior", "Trimestre anterior"
+
+  // Prazo legal = dia `prazoLegalDia` do mês (competência + `prazoLegalMesesApos`).
+  // V1 pragmático (sem calendário de feriados/UF) — sempre editável pelo
+  // sócio; ver nota técnica da própria cartilha.
+  prazoLegalMesesApos   Int     @default(1)
+  prazoLegalDia         Int     @default(20)
+  prazoLegalDescricao   String? // texto livre quando a regra não cabe em dia+offset
+  prazoInternoDiasAntes Int     @default(5)
+
+  // "Possui movimento no período" não entra aqui — é verificado por
+  // instância/competência (Fase C), não é característica fixa do template.
+  exigeMovimento              Boolean @default(false)
+  exigeEmpregados             Boolean @default(false)
+  exigeProLabore              Boolean @default(false)
+  exigeAutonomosRpa           Boolean @default(false)
+  exigeIcms                   Boolean @default(false)
+  exigeIss                    Boolean @default(false)
+  exigeIpi                    Boolean @default(false)
+  exigeIcmsSt                 Boolean @default(false)
+  exigeDifal                  Boolean @default(false)
+  exigeAntecipacaoTributaria  Boolean @default(false)
+  exigeRetencoesFederais      Boolean @default(false)
+  exigeRetencaoInss           Boolean @default(false)
+  exigeRetencaoIss            Boolean @default(false)
+  exigeCprb                   Boolean @default(false)
+  exigeFatorR                 Boolean @default(false)
+  exigeSstObrigatorio         Boolean @default(false)
+
+  geraGuia      Boolean   @default(false)
+  dependencia   String?
+  vigenciaInicio DateTime?
+  vigenciaFim    DateTime?
+  observacoes    String?
+  // Permite publicar o catálogo aos poucos (seed inicial entra desativado
+  // até um sócio conferir contra a legislação vigente).
+  ativo          Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ativo])
   @@schema("processos")
 }
 

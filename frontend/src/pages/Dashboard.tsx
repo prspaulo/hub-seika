@@ -56,7 +56,7 @@ export function Dashboard() {
   const hoje = new Date();
   const processosAtrasados = items.filter((p) => p.status !== "CONCLUIDO" && new Date(p.prazo) < hoje);
   const obrigacoesAtrasadas = (obrigacoes?.items ?? []).filter(
-    (o) => o.status !== "CONCLUIDO" && new Date(o.prazo) < hoje,
+    (o) => o.status !== "CONCLUIDA" && new Date(o.prazo) < hoje,
   );
 
   const meses = last6Months();
@@ -176,7 +176,7 @@ export function Dashboard() {
               ))}
             </ul>
           )}
-          <Link to="/obrigacoes" className="quiet-link" style={{ display: "inline-block", marginTop: 14 }}>
+          <Link to="/obrigacoes/pendencias" className="quiet-link" style={{ display: "inline-block", marginTop: 14 }}>
             Ver pendências →
           </Link>
         </div>

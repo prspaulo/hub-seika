@@ -2,7 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../auth/AuthContext";
 import { useApiClient } from "../../lib/useApiClient";
 import { useEmpresas } from "../../lib/useReferenceData";
-import { formatDate, formatMoney, STATUS_LABEL, type Obrigacao, type Processo } from "../../types/processo";
+import {
+  formatDate,
+  formatMoney,
+  STATUS_LABEL,
+  STATUS_OBRIGACAO_LABEL,
+  type Obrigacao,
+  type Processo,
+} from "../../types/processo";
 
 type ProcessosResponse = { items: Processo[] };
 type ObrigacoesResponse = { items: Obrigacao[] };
@@ -33,7 +40,7 @@ export function MeuEspaco() {
     .filter((p) => p.status !== "CONCLUIDO")
     .sort((a, b) => a.prazo.localeCompare(b.prazo));
   const obrigacoesAbertas = (obrigacoes?.items ?? [])
-    .filter((o) => o.status !== "CONCLUIDO")
+    .filter((o) => o.status !== "CONCLUIDA")
     .sort((a, b) => a.prazo.localeCompare(b.prazo));
 
   return (
@@ -105,7 +112,7 @@ export function MeuEspaco() {
                   <td>{empresaNome(obrigacao.empresaId)}</td>
                   <td>
                     <span className={`badge ${obrigacao.status.toLowerCase()}`}>
-                      {STATUS_LABEL[obrigacao.status]}
+                      {STATUS_OBRIGACAO_LABEL[obrigacao.status]}
                     </span>
                   </td>
                   <td>{formatDate(obrigacao.prazo)}</td>

@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma, type Db } from "../../shared/prisma.js";
-import type { ListObrigacoesQuery, ListProcessosQuery } from "./types.js";
+import type { ListObrigacaoTemplatesQuery, ListObrigacoesQuery, ListProcessosQuery } from "./types.js";
 
 export const processosRepository = {
   async list({ empresaId, owner, status, setor, page, pageSize }: ListProcessosQuery) {
@@ -38,11 +38,13 @@ export const processosRepository = {
 };
 
 export const obrigacoesRepository = {
-  async list({ empresaId, owner, status, search, page, pageSize }: ListObrigacoesQuery) {
+  async list({ empresaId, owner, status, competencia, departamento, search, page, pageSize }: ListObrigacoesQuery) {
     const where: Prisma.ObrigacaoWhereInput = {
       ...(empresaId ? { empresaId } : {}),
       ...(owner ? { owner } : {}),
       ...(status ? { status } : {}),
+      ...(competencia ? { competencia } : {}),
+      ...(departamento ? { departamento } : {}),
       ...(search ? { titulo: { contains: search, mode: "insensitive" } } : {}),
     };
 
@@ -63,6 +65,10 @@ export const obrigacoesRepository = {
     return prisma.obrigacao.findUnique({ where: { id } });
   },
 
+  findByChaveGeracao(chaveGeracao: string) {
+    return prisma.obrigacao.findUnique({ where: { chaveGeracao } });
+  },
+
   create(data: Prisma.ObrigacaoCreateInput) {
     return prisma.obrigacao.create({ data });
   },
@@ -73,5 +79,40 @@ export const obrigacoesRepository = {
 
   delete(id: string) {
     return prisma.obrigacao.delete({ where: { id } });
+  },
+};
+
+export const obrigacaoTemplatesRepository = {
+  list({ ativo, regime, atividade, search }: ListObrigacaoTemplatesQuery) {
+    const where: Prisma.ObrigacaoTemplateWhereInput = {
+      ...(ativo !== undefined ? { ativo } : {}),
+      ...(regime ? { regimesAplicaveis: { has: regime } } : {}),
+      ...(atividade ? { atividadesAplicaveis: { has: atividade } } : {}),
+      ...(search
+        ? {
+            OR: [
+              { nome: { contains: search, mode: "insensitive" } },
+              { codigo: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+    return prisma.obrigacaoTemplate.findMany({ where, orderBy: [{ grupo: "asc" }, { nome: "asc" }] });
+  },
+
+  findById(id: string) {
+    return prisma.obrigacaoTemplate.findUnique({ where: { id } });
+  },
+
+  create(data: Prisma.ObrigacaoTemplateCreateInput) {
+    return prisma.obrigacaoTemplate.create({ data });
+  },
+
+  update(id: string, data: Prisma.ObrigacaoTemplateUpdateInput) {
+    return prisma.obrigacaoTemplate.update({ where: { id }, data });
+  },
+
+  delete(id: string) {
+    return prisma.obrigacaoTemplate.delete({ where: { id } });
   },
 };

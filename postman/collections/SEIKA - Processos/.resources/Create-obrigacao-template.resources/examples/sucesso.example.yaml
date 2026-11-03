@@ -1,0 +1,54 @@
+$kind: http-example
+name: sucesso
+request:
+  url: '{{base_url}}/api/v1/obrigacoes/templates'
+  method: POST
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    - key: content-type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "id": "<uuid>",
+        "codigo": "FIS-SN-TESTE",
+        "nome": "PGDAS-D (teste)",
+        "grupo": "Federal",
+        "departamento": "FISCAL",
+        "regimesAplicaveis": ["SIMPLES_NACIONAL"],
+        "atividadesAplicaveis": ["SERVICO", "COMERCIO", "MISTA"],
+        "periodicidade": "MENSAL",
+        "mesesCompetencia": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "regraCompetencia": "Mês anterior",
+        "prazoLegalMesesApos": 1,
+        "prazoLegalDia": 20,
+        "prazoLegalDescricao": null,
+        "prazoInternoDiasAntes": 5,
+        "exigeMovimento": false,
+        "exigeEmpregados": false,
+        "exigeProLabore": false,
+        "exigeAutonomosRpa": false,
+        "exigeIcms": false,
+        "exigeIss": false,
+        "exigeIpi": false,
+        "exigeIcmsSt": false,
+        "exigeDifal": false,
+        "exigeAntecipacaoTributaria": false,
+        "exigeRetencoesFederais": false,
+        "exigeRetencaoInss": false,
+        "exigeRetencaoIss": false,
+        "exigeCprb": false,
+        "exigeFatorR": false,
+        "exigeSstObrigatorio": false,
+        "geraGuia": false,
+        "dependencia": null,
+        "vigenciaInicio": null,
+        "vigenciaFim": null,
+        "observacoes": null,
+        "ativo": false,
+        "createdAt": "2026-11-01T00:00:00.000Z",
+        "updatedAt": "2026-11-01T00:00:00.000Z"
+      }

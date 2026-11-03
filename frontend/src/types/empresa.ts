@@ -10,6 +10,9 @@ export type NaturezaJuridica =
   | "ASSOCIACAO";
 export type PorteEmpresa = "ME" | "EPP" | "DEMAIS";
 export type OrgaoRegistro = "OAB" | "JUNTA_COMERCIAL" | "CARTORIO";
+export type RegimeTributario = "SIMPLES_NACIONAL" | "LUCRO_PRESUMIDO" | "LUCRO_REAL";
+export type LucroRealApuracao = "TRIMESTRAL" | "ANUAL_ESTIMATIVA";
+export type NaturezaAtividade = "SERVICO" | "COMERCIO" | "MISTA";
 
 export const NATUREZA_JURIDICA_LABEL: Record<NaturezaJuridica, string> = {
   LTDA: "Sociedade Limitada (LTDA)",
@@ -32,6 +35,46 @@ export const ORGAO_REGISTRO_LABEL: Record<OrgaoRegistro, string> = {
   JUNTA_COMERCIAL: "Junta Comercial",
   CARTORIO: "Cartório",
 };
+
+export const REGIME_TRIBUTARIO_LABEL: Record<RegimeTributario, string> = {
+  SIMPLES_NACIONAL: "Simples Nacional",
+  LUCRO_PRESUMIDO: "Lucro Presumido",
+  LUCRO_REAL: "Lucro Real",
+};
+
+export const LUCRO_REAL_APURACAO_LABEL: Record<LucroRealApuracao, string> = {
+  TRIMESTRAL: "Trimestral",
+  ANUAL_ESTIMATIVA: "Anual por estimativa mensal",
+};
+
+export const NATUREZA_ATIVIDADE_LABEL: Record<NaturezaAtividade, string> = {
+  SERVICO: "Serviços",
+  COMERCIO: "Comércio",
+  MISTA: "Mista (serviços + comércio)",
+};
+
+// Checklist de características fiscais (seção 9 da Cartilha de Obrigações) —
+// alimenta o Motor de Obrigações (Fase C). "Possui movimento no período" fica
+// de fora de propósito: varia todo mês, não é característica fixa da empresa.
+export const CARACTERISTICAS_FISCAIS = [
+  { key: "possuiEmpregados", label: "Possui empregados?" },
+  { key: "possuiProLabore", label: "Possui pró-labore?" },
+  { key: "possuiAutonomosRpa", label: "Possui autônomos/RPA?" },
+  { key: "contribuinteIcms", label: "É contribuinte de ICMS?" },
+  { key: "contribuinteIss", label: "É contribuinte de ISS?" },
+  { key: "contribuinteIpi", label: "É contribuinte de IPI?" },
+  { key: "possuiIcmsSt", label: "Possui ICMS-ST?" },
+  { key: "possuiDifal", label: "Possui DIFAL?" },
+  { key: "possuiAntecipacaoTributaria", label: "Possui antecipação tributária?" },
+  { key: "possuiRetencoesFederais", label: "Possui retenções federais?" },
+  { key: "possuiRetencaoInss", label: "Possui retenção de INSS?" },
+  { key: "possuiRetencaoIss", label: "Possui retenção de ISS?" },
+  { key: "possuiCprb", label: "Possui CPRB?" },
+  { key: "sujeitoFatorR", label: "Atividade sujeita ao Fator R?" },
+  { key: "possuiSstObrigatorio", label: "Possui SST obrigatório?" },
+] as const;
+
+export type CaracteristicaFiscalKey = (typeof CARACTERISTICAS_FISCAIS)[number]["key"];
 
 export type Licenca = {
   id: string;
@@ -87,6 +130,24 @@ export type Empresa = {
   porte: PorteEmpresa | null;
   orgaoRegistro: OrgaoRegistro | null;
   tipoAtividade: string | null;
+  regimeTributario: RegimeTributario | null;
+  lucroRealApuracao: LucroRealApuracao | null;
+  naturezaAtividade: NaturezaAtividade | null;
+  possuiEmpregados: boolean;
+  possuiProLabore: boolean;
+  possuiAutonomosRpa: boolean;
+  contribuinteIcms: boolean;
+  contribuinteIss: boolean;
+  contribuinteIpi: boolean;
+  possuiIcmsSt: boolean;
+  possuiDifal: boolean;
+  possuiAntecipacaoTributaria: boolean;
+  possuiRetencoesFederais: boolean;
+  possuiRetencaoInss: boolean;
+  possuiRetencaoIss: boolean;
+  possuiCprb: boolean;
+  sujeitoFatorR: boolean;
+  possuiSstObrigatorio: boolean;
   certificadoDigitalUrl: string | null;
   certificadoDigitalVencimento: string | null;
   createdAt: string;

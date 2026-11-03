@@ -1,0 +1,33 @@
+$kind: http-request
+name: 'Create obrigacao template'
+method: POST
+url: '{{base_url}}/api/v1/obrigacoes/templates'
+order: 9000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "codigo": "FIS-SN-TESTE",
+      "nome": "PGDAS-D (teste)",
+      "grupo": "Federal",
+      "departamento": "FISCAL",
+      "regimesAplicaveis": ["SIMPLES_NACIONAL"],
+      "atividadesAplicaveis": ["SERVICO", "COMERCIO", "MISTA"],
+      "periodicidade": "MENSAL",
+      "mesesCompetencia": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "regraCompetencia": "Mês anterior",
+      "prazoLegalMesesApos": 1,
+      "prazoLegalDia": 20,
+      "ativo": false
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set('obrigacao_template_id', pm.response.json().id);
+      }
+examples: './.resources/Create-obrigacao-template.resources/examples/'

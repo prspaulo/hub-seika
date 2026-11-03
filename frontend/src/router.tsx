@@ -8,6 +8,8 @@ import { EmpresaDetail } from "./pages/clientes/EmpresaDetail";
 import { ProcessosBoard } from "./pages/processos/ProcessosBoard";
 import { ProcessoForm } from "./pages/processos/ProcessoForm";
 import { ObrigacoesList } from "./pages/obrigacoes/ObrigacoesList";
+import { ObrigacaoTemplatesPage } from "./pages/obrigacoes/ObrigacaoTemplatesPage";
+import { PendenciasPage } from "./pages/obrigacoes/PendenciasPage";
 import { MeuEspaco } from "./pages/meuespaco/MeuEspaco";
 import { Operacional } from "./pages/operacional/Operacional";
 import { LegalizacaoPage } from "./pages/legalizacao/LegalizacaoPage";
@@ -31,6 +33,8 @@ export const router = createBrowserRouter([
           { path: "clientes/novo", element: <EmpresaForm /> },
           { path: "clientes/:id", element: <EmpresaDetail /> },
           { path: "obrigacoes", element: <ObrigacoesList /> },
+          { path: "obrigacoes/pendencias", element: <PendenciasPage /> },
+          { path: "obrigacoes/templates", element: <ObrigacaoTemplatesPage /> },
           { path: "processos", element: <ProcessosBoard /> },
           { path: "processos/novo", element: <ProcessoForm /> },
           { path: "operacional", element: <Operacional /> },

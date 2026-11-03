@@ -1,0 +1,15 @@
+$kind: http-request
+name: 'Update obrigacao template'
+method: PATCH
+url: '{{base_url}}/api/v1/obrigacoes/templates/{{obrigacao_template_id}}'
+order: 10000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "ativo": true,
+      "prazoLegalDia": 22
+    }

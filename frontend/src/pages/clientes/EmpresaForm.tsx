@@ -2,13 +2,21 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError, useApiClient } from "../../lib/useApiClient";
 import {
+  CARACTERISTICAS_FISCAIS,
+  LUCRO_REAL_APURACAO_LABEL,
+  NATUREZA_ATIVIDADE_LABEL,
   NATUREZA_JURIDICA_LABEL,
   ORGAO_REGISTRO_LABEL,
   PORTE_EMPRESA_LABEL,
+  REGIME_TRIBUTARIO_LABEL,
+  type CaracteristicaFiscalKey,
   type Empresa,
+  type LucroRealApuracao,
+  type NaturezaAtividade,
   type NaturezaJuridica,
   type OrgaoRegistro,
   type PorteEmpresa,
+  type RegimeTributario,
 } from "../../types/empresa";
 
 type FormState = {
@@ -33,10 +41,19 @@ type FormState = {
   porte: PorteEmpresa | "";
   orgaoRegistro: OrgaoRegistro | "";
   tipoAtividade: string;
+  regimeTributario: RegimeTributario | "";
+  lucroRealApuracao: LucroRealApuracao | "";
+  naturezaAtividade: NaturezaAtividade | "";
   certificadoDigitalUrl: string;
   certificadoDigitalVencimento: string;
   temFilial: boolean;
 };
+
+type CaracteristicasFiscaisState = Record<CaracteristicaFiscalKey, boolean>;
+
+const EMPTY_CARACTERISTICAS: CaracteristicasFiscaisState = Object.fromEntries(
+  CARACTERISTICAS_FISCAIS.map((c) => [c.key, false]),
+) as CaracteristicasFiscaisState;
 
 const EMPTY_FORM: FormState = {
   razaoSocial: "",
@@ -60,6 +77,9 @@ const EMPTY_FORM: FormState = {
   porte: "",
   orgaoRegistro: "",
   tipoAtividade: "",
+  regimeTributario: "",
+  lucroRealApuracao: "",
+  naturezaAtividade: "",
   certificadoDigitalUrl: "",
   certificadoDigitalVencimento: "",
   temFilial: false,
@@ -75,6 +95,7 @@ export function EmpresaForm() {
   const api = useApiClient();
   const navigate = useNavigate();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [caracteristicas, setCaracteristicas] = useState<CaracteristicasFiscaisState>(EMPTY_CARACTERISTICAS);
   const [socios, setSocios] = useState<SocioRow[]>([]);
   const [filiais, setFiliais] = useState<FilialRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -119,11 +140,17 @@ export function EmpresaForm() {
         ...(form.porte ? { porte: form.porte } : {}),
         ...(form.orgaoRegistro ? { orgaoRegistro: form.orgaoRegistro } : {}),
         ...(form.tipoAtividade ? { tipoAtividade: form.tipoAtividade } : {}),
+        ...(form.regimeTributario ? { regimeTributario: form.regimeTributario } : {}),
+        ...(form.regimeTributario === "LUCRO_REAL" && form.lucroRealApuracao
+          ? { lucroRealApuracao: form.lucroRealApuracao }
+          : {}),
+        ...(form.naturezaAtividade ? { naturezaAtividade: form.naturezaAtividade } : {}),
         ...(form.certificadoDigitalUrl ? { certificadoDigitalUrl: form.certificadoDigitalUrl } : {}),
         ...(form.certificadoDigitalVencimento
           ? { certificadoDigitalVencimento: form.certificadoDigitalVencimento }
           : {}),
         temFilial: form.temFilial,
+        ...caracteristicas,
       };
       const empresa = (await api.post("/api/v1/empresas", payload)) as Empresa;
 
@@ -247,6 +274,50 @@ export function EmpresaForm() {
           />
         </label>
         <label>
+          Regime tributário
+          <select
+            value={form.regimeTributario}
+            onChange={(e) => update("regimeTributario", e.target.value as RegimeTributario)}
+          >
+            <option value="">Selecione...</option>
+            {Object.entries(REGIME_TRIBUTARIO_LABEL).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {form.regimeTributario === "LUCRO_REAL" && (
+          <label>
+            Apuração do Lucro Real
+            <select
+              value={form.lucroRealApuracao}
+              onChange={(e) => update("lucroRealApuracao", e.target.value as LucroRealApuracao)}
+            >
+              <option value="">Selecione...</option>
+              {Object.entries(LUCRO_REAL_APURACAO_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label>
+          Natureza da atividade
+          <select
+            value={form.naturezaAtividade}
+            onChange={(e) => update("naturezaAtividade", e.target.value as NaturezaAtividade)}
+          >
+            <option value="">Selecione...</option>
+            {Object.entries(NATUREZA_ATIVIDADE_LABEL).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           Inscrição municipal
           <input value={form.inscricaoMunicipal} onChange={(e) => update("inscricaoMunicipal", e.target.value)} />
         </label>
@@ -311,6 +382,27 @@ export function EmpresaForm() {
             onChange={(e) => update("certificadoDigitalVencimento", e.target.value)}
           />
         </label>
+
+        <div className="wide">
+          <h3 style={{ margin: "8px 0" }}>Características fiscais</h3>
+          <p className="muted" style={{ marginTop: -6, marginBottom: 10 }}>
+            Alimenta o Motor de Obrigações — define quais obrigações fiscais/pessoais se aplicam a esta
+            empresa.
+          </p>
+        </div>
+        <div className="wide" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px 16px" }}>
+          {CARACTERISTICAS_FISCAIS.map((c) => (
+            <label key={c.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                style={{ width: "auto", margin: 0 }}
+                checked={caracteristicas[c.key]}
+                onChange={(e) => setCaracteristicas((prev) => ({ ...prev, [c.key]: e.target.checked }))}
+              />
+              {c.label}
+            </label>
+          ))}
+        </div>
 
         <div className="wide">
           <h3 style={{ margin: "8px 0" }}>Sócio(s) administrador(es) responsável(eis)</h3>

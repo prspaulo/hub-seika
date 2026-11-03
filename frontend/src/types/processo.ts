@@ -1,4 +1,13 @@
 export type StatusTarefa = "A_FAZER" | "EM_ANDAMENTO" | "AGUARDANDO_CLIENTE" | "CONCLUIDO";
+// Status próprio de Obrigacao (distinto de StatusTarefa, que Processo
+// continua usando) — ver nota no schema.prisma do backend.
+export type StatusObrigacao =
+  | "AGUARDANDO_DOCUMENTOS"
+  | "EM_ANALISE"
+  | "EM_PROCESSAMENTO"
+  | "EM_CONFERENCIA"
+  | "CONCLUIDA"
+  | "NAO_APLICAVEL";
 export type Setor =
   | "LEGALIZACAO"
   | "CONTABIL"
@@ -21,6 +30,24 @@ export const STATUS_ORDER: StatusTarefa[] = [
   "EM_ANDAMENTO",
   "AGUARDANDO_CLIENTE",
   "CONCLUIDO",
+];
+
+export const STATUS_OBRIGACAO_LABEL: Record<StatusObrigacao, string> = {
+  AGUARDANDO_DOCUMENTOS: "Aguardando documentos",
+  EM_ANALISE: "Em análise",
+  EM_PROCESSAMENTO: "Em processamento",
+  EM_CONFERENCIA: "Em conferência",
+  CONCLUIDA: "Concluída",
+  NAO_APLICAVEL: "Não aplicável",
+};
+
+export const STATUS_OBRIGACAO_ORDER: StatusObrigacao[] = [
+  "AGUARDANDO_DOCUMENTOS",
+  "EM_ANALISE",
+  "EM_PROCESSAMENTO",
+  "EM_CONFERENCIA",
+  "CONCLUIDA",
+  "NAO_APLICAVEL",
 ];
 
 export const SETOR_LABEL: Record<Setor, string> = {
@@ -58,8 +85,14 @@ export type Obrigacao = {
   owner: string;
   titulo: string;
   prazo: string;
-  status: StatusTarefa;
+  status: StatusObrigacao;
   notas: string | null;
+  // Preenchidos só quando vem do Motor de Obrigações — null em obrigações manuais.
+  templateId: string | null;
+  competencia: string | null;
+  departamento: Setor | null;
+  prazoLegal: string | null;
+  semMovimento: boolean;
   createdAt: string;
 };
 
@@ -69,4 +102,23 @@ export function formatMoney(value: number): string {
 
 export function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("pt-BR");
+}
+
+export type AtrasoObrigacao = "vencido_legal" | "vencido_interno" | "ok";
+
+export const ATRASO_LABEL: Record<AtrasoObrigacao, string> = {
+  vencido_legal: "Prazo legal vencido",
+  vencido_interno: "Prazo interno vencido",
+  ok: "Em dia",
+};
+
+// "Vencido" (legal ou interno) não é gravado — é calculado comparando com
+// hoje, igual seção 10 da Cartilha SEIKA. Concluída/Não aplicável nunca
+// aparecem como vencidas.
+export function obrigacaoAtraso(obrigacao: Obrigacao): AtrasoObrigacao | null {
+  if (obrigacao.status === "CONCLUIDA" || obrigacao.status === "NAO_APLICAVEL") return null;
+  const hoje = Date.now();
+  if (obrigacao.prazoLegal && new Date(obrigacao.prazoLegal).getTime() < hoje) return "vencido_legal";
+  if (new Date(obrigacao.prazo).getTime() < hoje) return "vencido_interno";
+  return "ok";
 }

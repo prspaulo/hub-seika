@@ -18,6 +18,9 @@ export const naturezaJuridicaSchema = z.enum([
 ]);
 export const porteEmpresaSchema = z.enum(["ME", "EPP", "DEMAIS"]);
 export const orgaoRegistroSchema = z.enum(["OAB", "JUNTA_COMERCIAL", "CARTORIO"]);
+export const regimeTributarioSchema = z.enum(["SIMPLES_NACIONAL", "LUCRO_PRESUMIDO", "LUCRO_REAL"]);
+export const lucroRealApuracaoSchema = z.enum(["TRIMESTRAL", "ANUAL_ESTIMATIVA"]);
+export const naturezaAtividadeSchema = z.enum(["SERVICO", "COMERCIO", "MISTA"]);
 
 const enderecoFields = {
   enderecoLogradouro: z.string().min(2).optional(),
@@ -40,6 +43,25 @@ const cadastroFields = {
   porte: porteEmpresaSchema.optional(),
   orgaoRegistro: orgaoRegistroSchema.optional(),
   tipoAtividade: z.string().min(2).optional(),
+  // Entrada da árvore de decisão do Motor de Obrigações (Cartilha SEIKA).
+  regimeTributario: regimeTributarioSchema.optional(),
+  lucroRealApuracao: lucroRealApuracaoSchema.optional(),
+  naturezaAtividade: naturezaAtividadeSchema.optional(),
+  possuiEmpregados: z.boolean().optional(),
+  possuiProLabore: z.boolean().optional(),
+  possuiAutonomosRpa: z.boolean().optional(),
+  contribuinteIcms: z.boolean().optional(),
+  contribuinteIss: z.boolean().optional(),
+  contribuinteIpi: z.boolean().optional(),
+  possuiIcmsSt: z.boolean().optional(),
+  possuiDifal: z.boolean().optional(),
+  possuiAntecipacaoTributaria: z.boolean().optional(),
+  possuiRetencoesFederais: z.boolean().optional(),
+  possuiRetencaoInss: z.boolean().optional(),
+  possuiRetencaoIss: z.boolean().optional(),
+  possuiCprb: z.boolean().optional(),
+  sujeitoFatorR: z.boolean().optional(),
+  possuiSstObrigatorio: z.boolean().optional(),
   certificadoDigitalUrl: z.string().url().optional(),
   certificadoDigitalVencimento: z.coerce.date().optional(),
 };

@@ -10,5 +10,5 @@ body:
   type: json
   content: |-
     {
-      "status": "CONCLUIDO"
+      "status": "CONCLUIDA"
     }

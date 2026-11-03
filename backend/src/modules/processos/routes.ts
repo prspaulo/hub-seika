@@ -3,12 +3,18 @@ import { requireAuth, requireRole } from "../../shared/auth-guard.js";
 import { fromCentavos } from "../../shared/money.js";
 import { processosService } from "./service.js";
 import { obrigacoesService } from "./obrigacoes-service.js";
+import { obrigacaoTemplatesService } from "./obrigacao-templates-service.js";
+import { obrigacoesGeradorService } from "./obrigacoes-gerador-service.js";
 import {
   createObrigacaoSchema,
+  createObrigacaoTemplateSchema,
   createProcessoSchema,
+  gerarObrigacoesSchema,
+  listObrigacaoTemplatesQuerySchema,
   listObrigacoesQuerySchema,
   listProcessosQuerySchema,
   updateObrigacaoSchema,
+  updateObrigacaoTemplateSchema,
   updateProcessoSchema,
 } from "./types.js";
 
@@ -73,6 +79,15 @@ export async function obrigacoesRoutes(app: FastifyInstance) {
     return obrigacao;
   });
 
+  // Motor de Obrigações (Cartilha SEIKA) — cruza o catálogo (ObrigacaoTemplate)
+  // com as características fiscais de cada empresa e materializa as
+  // obrigações da competência. Idempotente via chaveGeracao: rodar de novo
+  // não duplica o que já foi gerado.
+  app.post("/gerar", async (request) => {
+    const input = gerarObrigacoesSchema.parse(request.body);
+    return obrigacoesGeradorService.gerar(input, request.user.sub);
+  });
+
   app.get("/:id", async (request) => {
     const { id } = request.params as { id: string };
     return obrigacoesService.getById(id);
@@ -87,6 +102,40 @@ export async function obrigacoesRoutes(app: FastifyInstance) {
   app.delete("/:id", async (request, reply) => {
     const { id } = request.params as { id: string };
     await obrigacoesService.delete(id);
+    reply.status(204);
+  });
+}
+
+export async function obrigacaoTemplatesRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", requireAuth);
+  app.addHook("preHandler", requireRole(...MANAGE_ROLES));
+
+  app.get("/", async (request) => {
+    const query = listObrigacaoTemplatesQuerySchema.parse(request.query);
+    return obrigacaoTemplatesService.list(query);
+  });
+
+  app.post("/", async (request, reply) => {
+    const input = createObrigacaoTemplateSchema.parse(request.body);
+    const template = await obrigacaoTemplatesService.create(input);
+    reply.status(201);
+    return template;
+  });
+
+  app.get("/:id", async (request) => {
+    const { id } = request.params as { id: string };
+    return obrigacaoTemplatesService.getById(id);
+  });
+
+  app.patch("/:id", async (request) => {
+    const { id } = request.params as { id: string };
+    const input = updateObrigacaoTemplateSchema.parse(request.body);
+    return obrigacaoTemplatesService.update(id, input);
+  });
+
+  app.delete("/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    await obrigacaoTemplatesService.delete(id);
     reply.status(204);
   });
 }

@@ -15,6 +15,8 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
       { label: "Meu espaço", path: "/meu-espaco" },
       { label: "Empresas", path: "/clientes" },
       { label: "Obrigações", path: "/obrigacoes" },
+      { label: "Pendências", path: "/obrigacoes/pendencias" },
+      { label: "Catálogo de obrigações", path: "/obrigacoes/templates" },
       { label: "Gestão de processos", path: "/processos" },
       { label: "Operacional", path: "/operacional" },
       { label: "Financeiro", path: "/financeiro" },
