@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError, useApiClient } from "../../lib/useApiClient";
 import { useEmpresas, useAssignableUsers } from "../../lib/useReferenceData";
 import {
+  agruparObrigacoesPorEmpresa,
   ATRASO_LABEL,
   formatDate,
   obrigacaoAtraso,
@@ -81,6 +82,11 @@ export function ObrigacoesList() {
   const semMovimentoMutation = useMutation({
     mutationFn: ({ id, semMovimento }: { id: string; semMovimento: boolean }) =>
       api.patch(`/api/v1/obrigacoes/${id}`, { semMovimento }),
+    onSuccess: invalidate,
+  });
+
+  const ownerMutation = useMutation({
+    mutationFn: ({ id, owner }: { id: string; owner: string }) => api.patch(`/api/v1/obrigacoes/${id}`, { owner }),
     onSuccess: invalidate,
   });
 
@@ -239,84 +245,98 @@ export function ObrigacoesList() {
 
       {isLoading && <p>Carregando...</p>}
 
-      {data && data.items.length > 0 && (
-        <div className="card">
-          <table>
-            <thead>
-              <tr>
-                <th>Título</th>
-                <th>Cliente</th>
-                <th>Depto</th>
-                <th>Competência</th>
-                <th>Responsável</th>
-                <th>Prazo interno</th>
-                <th>Prazo legal</th>
-                <th>Situação</th>
-                <th>Sem movimento</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((obrigacao) => {
-                const atraso = obrigacaoAtraso(obrigacao);
-                return (
-                  <tr key={obrigacao.id}>
-                    <td>
-                      {obrigacao.titulo}
-                      {obrigacao.templateId && <div className="muted">Gerada pelo motor</div>}
-                    </td>
-                    <td>{empresaNome(obrigacao.empresaId)}</td>
-                    <td>{obrigacao.departamento ? SETOR_LABEL[obrigacao.departamento] : "—"}</td>
-                    <td>{obrigacao.competencia ?? "—"}</td>
-                    <td>{ownerNome(obrigacao.owner)}</td>
-                    <td>{formatDate(obrigacao.prazo)}</td>
-                    <td>{obrigacao.prazoLegal ? formatDate(obrigacao.prazoLegal) : "—"}</td>
-                    <td>
-                      <select
-                        value={obrigacao.status}
-                        onChange={(event) =>
-                          statusMutation.mutate({
-                            id: obrigacao.id,
-                            status: event.target.value as StatusObrigacao,
-                          })
-                        }
-                      >
-                        {STATUS_OBRIGACAO_ORDER.map((status) => (
-                          <option key={status} value={status}>
-                            {STATUS_OBRIGACAO_LABEL[status]}
-                          </option>
-                        ))}
-                      </select>
-                      {atraso && atraso !== "ok" && (
-                        <div>
-                          <span className={`badge ${atraso === "vencido_legal" ? "inativa" : "suspensa"}`}>
-                            {ATRASO_LABEL[atraso]}
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        style={{ width: "auto", margin: 0 }}
-                        checked={obrigacao.semMovimento}
-                        onChange={(event) =>
-                          semMovimentoMutation.mutate({ id: obrigacao.id, semMovimento: event.target.checked })
-                        }
-                      />
-                    </td>
-                    <td>
-                      <button type="button" className="quiet" onClick={() => deleteMutation.mutate(obrigacao.id)}>
-                        Remover
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {data &&
+        data.items.length > 0 &&
+        agruparObrigacoesPorEmpresa(data.items, empresaNome).map((grupo) => (
+          <div key={grupo.empresaId ?? "__interna__"} className="card" style={{ marginBottom: 18 }}>
+            <h3>
+              {grupo.nome} <span className="muted">· {grupo.itens.length}</span>
+            </h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Depto</th>
+                  <th>Competência</th>
+                  <th>Responsável</th>
+                  <th>Prazo interno</th>
+                  <th>Prazo legal</th>
+                  <th>Situação</th>
+                  <th>Sem movimento</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {grupo.itens.map((obrigacao) => {
+                  const atraso = obrigacaoAtraso(obrigacao);
+                  return (
+                    <tr key={obrigacao.id}>
+                      <td>
+                        {obrigacao.titulo}
+                        {obrigacao.templateId && <div className="muted">Gerada pelo motor</div>}
+                      </td>
+                      <td>{obrigacao.departamento ? SETOR_LABEL[obrigacao.departamento] : "—"}</td>
+                      <td>{obrigacao.competencia ?? "—"}</td>
+                      <td>
+                        <select
+                          value={obrigacao.owner}
+                          onChange={(event) => ownerMutation.mutate({ id: obrigacao.id, owner: event.target.value })}
+                        >
+                          {users?.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>{formatDate(obrigacao.prazo)}</td>
+                      <td>{obrigacao.prazoLegal ? formatDate(obrigacao.prazoLegal) : "—"}</td>
+                      <td>
+                        <select
+                          value={obrigacao.status}
+                          onChange={(event) =>
+                            statusMutation.mutate({
+                              id: obrigacao.id,
+                              status: event.target.value as StatusObrigacao,
+                            })
+                          }
+                        >
+                          {STATUS_OBRIGACAO_ORDER.map((status) => (
+                            <option key={status} value={status}>
+                              {STATUS_OBRIGACAO_LABEL[status]}
+                            </option>
+                          ))}
+                        </select>
+                        {atraso && atraso !== "ok" && (
+                          <div>
+                            <span className={`badge ${atraso === "vencido_legal" ? "inativa" : "suspensa"}`}>
+                              {ATRASO_LABEL[atraso]}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          style={{ width: "auto", margin: 0 }}
+                          checked={obrigacao.semMovimento}
+                          onChange={(event) =>
+                            semMovimentoMutation.mutate({ id: obrigacao.id, semMovimento: event.target.checked })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <button type="button" className="quiet" onClick={() => deleteMutation.mutate(obrigacao.id)}>
+                          Remover
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ))}
 
       {data && data.items.length === 0 && <p className="empty">Nenhuma obrigação encontrada.</p>}
 

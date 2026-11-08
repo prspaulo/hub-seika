@@ -7,7 +7,12 @@ import { env } from "./config/env.js";
 import { AppError } from "./shared/errors.js";
 import { authRoutes } from "./modules/auth/routes.js";
 import { clientesRoutes } from "./modules/clientes/routes.js";
-import { obrigacaoTemplatesRoutes, obrigacoesRoutes, processosRoutes } from "./modules/processos/routes.js";
+import {
+  obrigacaoTemplatesRoutes,
+  obrigacoesRoutes,
+  processosRoutes,
+  responsaveisDepartamentoRoutes,
+} from "./modules/processos/routes.js";
 import { financeiroRoutes } from "./modules/financeiro/routes.js";
 import { acervoRoutes } from "./modules/acervo/routes.js";
 
@@ -29,6 +34,7 @@ export function buildApp() {
   app.register(processosRoutes, { prefix: "/api/v1/processos" });
   app.register(obrigacoesRoutes, { prefix: "/api/v1/obrigacoes" });
   app.register(obrigacaoTemplatesRoutes, { prefix: "/api/v1/obrigacoes/templates" });
+  app.register(responsaveisDepartamentoRoutes, { prefix: "/api/v1/obrigacoes/responsaveis-departamento" });
   app.register(financeiroRoutes, { prefix: "/api/v1/financeiro" });
   app.register(acervoRoutes, { prefix: "/api/v1/acervo" });
 

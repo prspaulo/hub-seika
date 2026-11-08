@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'Delete responsavel departamento'
+method: DELETE
+url: '{{base_url}}/api/v1/obrigacoes/responsaveis-departamento/FISCAL'
+order: 11600

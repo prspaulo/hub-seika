@@ -210,6 +210,8 @@ export type ListObrigacaoTemplatesQuery = z.infer<typeof listObrigacaoTemplatesQ
 // --- Motor de geração ---
 
 export const gerarObrigacoesSchema = z.object({
+  // Fallback: usado só pros departamentos sem responsável padrão configurado
+  // em ResponsavelDepartamento. Ver obrigacoes-gerador-service.ts.
   ownerId: z.string().uuid(),
   competencia: z
     .string()
@@ -218,3 +220,10 @@ export const gerarObrigacoesSchema = z.object({
   empresaId: z.string().uuid().optional(),
 });
 export type GerarObrigacoesInput = z.infer<typeof gerarObrigacoesSchema>;
+
+// --- Responsável padrão por departamento ---
+
+export const setResponsavelDepartamentoSchema = z.object({
+  ownerId: z.string().uuid(),
+});
+export type SetResponsavelDepartamentoInput = z.infer<typeof setResponsavelDepartamentoSchema>;

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Setor } from "@prisma/client";
 import { prisma, type Db } from "../../shared/prisma.js";
 import type { ListObrigacaoTemplatesQuery, ListObrigacoesQuery, ListProcessosQuery } from "./types.js";
 
@@ -114,5 +114,23 @@ export const obrigacaoTemplatesRepository = {
 
   delete(id: string) {
     return prisma.obrigacaoTemplate.delete({ where: { id } });
+  },
+};
+
+export const responsaveisDepartamentoRepository = {
+  list() {
+    return prisma.responsavelDepartamento.findMany({ orderBy: { departamento: "asc" } });
+  },
+
+  upsert(departamento: Setor, ownerId: string, actorId: string) {
+    return prisma.responsavelDepartamento.upsert({
+      where: { departamento },
+      create: { departamento, ownerId, updatedBy: actorId },
+      update: { ownerId, updatedBy: actorId },
+    });
+  },
+
+  delete(departamento: Setor) {
+    return prisma.responsavelDepartamento.delete({ where: { departamento } });
   },
 };

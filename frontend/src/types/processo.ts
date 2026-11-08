@@ -96,6 +96,39 @@ export type Obrigacao = {
   createdAt: string;
 };
 
+export type ResponsavelDepartamento = {
+  departamento: Setor;
+  ownerId: string;
+  updatedAt: string;
+};
+
+export type ObrigacaoGrupo = { empresaId: string | null; nome: string; itens: Obrigacao[] };
+
+// Agrupa preservando a ordenação já aplicada em `itens` (ex: por prazo) dentro
+// de cada grupo — só reparte em "baldes" por empresa, sem reordenar.
+export function agruparObrigacoesPorEmpresa(
+  itens: Obrigacao[],
+  nomeEmpresa: (empresaId: string) => string,
+): ObrigacaoGrupo[] {
+  const grupos = new Map<string, ObrigacaoGrupo>();
+  for (const item of itens) {
+    const chave = item.empresaId ?? "__interna__";
+    if (!grupos.has(chave)) {
+      grupos.set(chave, {
+        empresaId: item.empresaId,
+        nome: item.empresaId ? nomeEmpresa(item.empresaId) : "Interna / sem cliente",
+        itens: [],
+      });
+    }
+    grupos.get(chave)!.itens.push(item);
+  }
+  return [...grupos.values()].sort((a, b) => {
+    if (a.empresaId === null) return 1;
+    if (b.empresaId === null) return -1;
+    return a.nome.localeCompare(b.nome, "pt-BR");
+  });
+}
+
 export function formatMoney(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }

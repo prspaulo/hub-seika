@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'List responsaveis departamento'
+method: GET
+url: '{{base_url}}/api/v1/obrigacoes/responsaveis-departamento'
+order: 11200

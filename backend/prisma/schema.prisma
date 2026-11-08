@@ -421,6 +421,20 @@ model ObrigacaoTemplate {
   @@schema("processos")
 }
 
+// Responsável padrão por departamento — usado automaticamente pelo motor de
+// geração quando o template daquela obrigação tem `departamento` configurado
+// aqui, em vez do "Responsável padrão" escolhido na hora de gerar (que vira
+// só o fallback dos departamentos sem override). ownerId é id de User
+// (módulo Auth), validado via service, sem FK cross-schema.
+model ResponsavelDepartamento {
+  departamento Setor    @id
+  ownerId      String
+  updatedBy    String
+  updatedAt    DateTime @updatedAt
+
+  @@schema("processos")
+}
+
 enum TipoCobranca {
   ESPORADICO
   MENSAL

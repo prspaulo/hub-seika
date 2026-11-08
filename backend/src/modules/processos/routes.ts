@@ -5,6 +5,7 @@ import { processosService } from "./service.js";
 import { obrigacoesService } from "./obrigacoes-service.js";
 import { obrigacaoTemplatesService } from "./obrigacao-templates-service.js";
 import { obrigacoesGeradorService } from "./obrigacoes-gerador-service.js";
+import { responsaveisDepartamentoService } from "./responsaveis-departamento-service.js";
 import {
   createObrigacaoSchema,
   createObrigacaoTemplateSchema,
@@ -13,6 +14,8 @@ import {
   listObrigacaoTemplatesQuerySchema,
   listObrigacoesQuerySchema,
   listProcessosQuerySchema,
+  setResponsavelDepartamentoSchema,
+  setorSchema,
   updateObrigacaoSchema,
   updateObrigacaoTemplateSchema,
   updateProcessoSchema,
@@ -136,6 +139,27 @@ export async function obrigacaoTemplatesRoutes(app: FastifyInstance) {
   app.delete("/:id", async (request, reply) => {
     const { id } = request.params as { id: string };
     await obrigacaoTemplatesService.delete(id);
+    reply.status(204);
+  });
+}
+
+export async function responsaveisDepartamentoRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", requireAuth);
+  app.addHook("preHandler", requireRole(...MANAGE_ROLES));
+
+  app.get("/", async () => {
+    return responsaveisDepartamentoService.list();
+  });
+
+  app.put("/:departamento", async (request) => {
+    const departamento = setorSchema.parse((request.params as { departamento: string }).departamento);
+    const input = setResponsavelDepartamentoSchema.parse(request.body);
+    return responsaveisDepartamentoService.set(departamento, input, request.user.sub);
+  });
+
+  app.delete("/:departamento", async (request, reply) => {
+    const departamento = setorSchema.parse((request.params as { departamento: string }).departamento);
+    await responsaveisDepartamentoService.remove(departamento);
     reply.status(204);
   });
 }

@@ -7,7 +7,7 @@ export function useEmpresas() {
   const api = useApiClient();
   return useQuery({
     queryKey: ["empresas-all"],
-    queryFn: () => api.get("/api/v1/empresas?pageSize=200") as Promise<{ items: Empresa[] }>,
+    queryFn: () => api.get("/api/v1/empresas?pageSize=100") as Promise<{ items: Empresa[] }>,
   });
 }
 

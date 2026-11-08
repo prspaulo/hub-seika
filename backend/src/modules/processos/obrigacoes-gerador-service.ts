@@ -2,7 +2,11 @@ import type { Empresa, ObrigacaoTemplate } from "@prisma/client";
 import { competenciaAtual } from "../../shared/competencia.js";
 import { authService } from "../auth/service.js";
 import { empresasService } from "../clientes/service.js";
-import { obrigacaoTemplatesRepository, obrigacoesRepository } from "./repository.js";
+import {
+  obrigacaoTemplatesRepository,
+  obrigacoesRepository,
+  responsaveisDepartamentoRepository,
+} from "./repository.js";
 import type { GerarObrigacoesInput } from "./types.js";
 
 // Espelha 1:1 os 15 `exigeX` do template com os 15 `possuiX`/`contribuinteX`/
@@ -85,6 +89,13 @@ export const obrigacoesGeradorService = {
 
     const templates = await obrigacaoTemplatesRepository.list({ ativo: true });
 
+    // Responsável padrão por departamento tem prioridade sobre o
+    // "Responsável padrão" escolhido na hora de gerar — este último vira só
+    // o fallback pros departamentos sem override configurado.
+    const responsaveisPorDepartamento = new Map(
+      (await responsaveisDepartamentoRepository.list()).map((r) => [r.departamento, r.ownerId]),
+    );
+
     let criadas = 0;
     let jaExistentes = 0;
     const itens = [];
@@ -103,10 +114,11 @@ export const obrigacoesGeradorService = {
 
         const prazoLegal = calcularPrazoLegal(template, competencia);
         const prazo = new Date(prazoLegal.getTime() - template.prazoInternoDiasAntes * 24 * 60 * 60 * 1000);
+        const owner = responsaveisPorDepartamento.get(template.departamento) ?? input.ownerId;
 
         const obrigacao = await obrigacoesRepository.create({
           empresaId: empresa.id,
-          owner: input.ownerId,
+          owner,
           titulo: template.nome,
           prazo,
           prazoLegal,

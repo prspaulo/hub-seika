@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useApiClient } from "../../lib/useApiClient";
 import { useEmpresas, useAssignableUsers } from "../../lib/useReferenceData";
 import {
+  agruparObrigacoesPorEmpresa,
   formatDate,
   obrigacaoAtraso,
   SETOR_LABEL,
@@ -73,32 +74,37 @@ export function PendenciasPage() {
           {bucket.itens.length === 0 ? (
             <p className="muted">Nada aqui.</p>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Título</th>
-                  <th>Cliente</th>
-                  <th>Depto</th>
-                  <th>Responsável</th>
-                  <th>Prazo interno</th>
-                  <th>Prazo legal</th>
-                  <th>Situação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bucket.itens.map((obrigacao) => (
-                  <tr key={obrigacao.id}>
-                    <td>{obrigacao.titulo}</td>
-                    <td>{empresaNome(obrigacao.empresaId)}</td>
-                    <td>{obrigacao.departamento ? SETOR_LABEL[obrigacao.departamento] : "—"}</td>
-                    <td>{ownerNome(obrigacao.owner)}</td>
-                    <td>{formatDate(obrigacao.prazo)}</td>
-                    <td>{obrigacao.prazoLegal ? formatDate(obrigacao.prazoLegal) : "—"}</td>
-                    <td>{STATUS_OBRIGACAO_LABEL[obrigacao.status]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            agruparObrigacoesPorEmpresa(bucket.itens, empresaNome).map((grupo) => (
+              <div key={grupo.empresaId ?? "__interna__"} style={{ marginTop: 14 }}>
+                <p className="muted" style={{ marginBottom: 6, fontWeight: 600 }}>
+                  {grupo.nome} <span style={{ fontWeight: 400 }}>· {grupo.itens.length}</span>
+                </p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Título</th>
+                      <th>Depto</th>
+                      <th>Responsável</th>
+                      <th>Prazo interno</th>
+                      <th>Prazo legal</th>
+                      <th>Situação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {grupo.itens.map((obrigacao) => (
+                      <tr key={obrigacao.id}>
+                        <td>{obrigacao.titulo}</td>
+                        <td>{obrigacao.departamento ? SETOR_LABEL[obrigacao.departamento] : "—"}</td>
+                        <td>{ownerNome(obrigacao.owner)}</td>
+                        <td>{formatDate(obrigacao.prazo)}</td>
+                        <td>{obrigacao.prazoLegal ? formatDate(obrigacao.prazoLegal) : "—"}</td>
+                        <td>{STATUS_OBRIGACAO_LABEL[obrigacao.status]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))
           )}
         </div>
       ))}

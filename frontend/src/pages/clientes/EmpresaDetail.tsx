@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "../../lib/useApiClient";
 import {
@@ -24,6 +24,14 @@ import {
   type RegimeTributario,
   type SocioAdministrador,
 } from "../../types/empresa";
+import {
+  ATRASO_LABEL,
+  SETOR_LABEL,
+  STATUS_OBRIGACAO_LABEL,
+  obrigacaoAtraso,
+  type Obrigacao,
+} from "../../types/processo";
+import { useAssignableUsers } from "../../lib/useReferenceData";
 
 type EmpresaDetailData = Empresa & {
   licencas: Licenca[];
@@ -128,6 +136,17 @@ export function EmpresaDetail() {
     queryFn: () => api.get(`/api/v1/financeiro/mensalidades/${id}`) as Promise<Mensalidade | null>,
     enabled: !!id,
   });
+
+  const { data: obrigacoesEmpresa } = useQuery({
+    queryKey: ["obrigacoes-empresa", id],
+    queryFn: () =>
+      api.get(`/api/v1/obrigacoes?empresaId=${id}&pageSize=200`) as Promise<{ items: Obrigacao[]; total: number }>,
+    enabled: !!id,
+  });
+  const { data: users } = useAssignableUsers();
+  function ownerNome(ownerId: string) {
+    return users?.find((u) => u.id === ownerId)?.name ?? "—";
+  }
 
   const [mensalidadeForm, setMensalidadeForm] = useState(EMPTY_MENSALIDADE_FORM);
 
@@ -483,6 +502,62 @@ export function EmpresaDetail() {
             </label>
           ))}
         </div>
+      </div>
+
+      <div className="card">
+        <h3>Obrigações desta empresa</h3>
+        <p className="muted" style={{ marginTop: -6, marginBottom: 14 }}>
+          Geradas pelo Motor de Obrigações a partir do regime, atividade e características fiscais acima, mais
+          obrigações manuais vinculadas a esta empresa.
+        </p>
+        {!obrigacoesEmpresa || obrigacoesEmpresa.items.length === 0 ? (
+          <p className="empty">Nenhuma obrigação vinculada ainda. Use "Gerar obrigações do mês" na Central de Prazos.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Depto</th>
+                <th>Competência</th>
+                <th>Responsável</th>
+                <th>Prazo interno</th>
+                <th>Prazo legal</th>
+                <th>Situação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {obrigacoesEmpresa.items.map((obrigacao) => {
+                const atraso = obrigacaoAtraso(obrigacao);
+                return (
+                  <tr key={obrigacao.id}>
+                    <td>
+                      {obrigacao.titulo}
+                      {obrigacao.templateId && <div className="muted">Gerada pelo motor</div>}
+                    </td>
+                    <td>{obrigacao.departamento ? SETOR_LABEL[obrigacao.departamento] : "—"}</td>
+                    <td>{obrigacao.competencia ?? "—"}</td>
+                    <td>{ownerNome(obrigacao.owner)}</td>
+                    <td>{formatDate(obrigacao.prazo)}</td>
+                    <td>{obrigacao.prazoLegal ? formatDate(obrigacao.prazoLegal) : "—"}</td>
+                    <td>
+                      {STATUS_OBRIGACAO_LABEL[obrigacao.status]}
+                      {atraso && atraso !== "ok" && (
+                        <div>
+                          <span className={`badge ${atraso === "vencido_legal" ? "inativa" : "suspensa"}`}>
+                            {ATRASO_LABEL[atraso]}
+                          </span>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+        <Link to="/obrigacoes" className="quiet-link" style={{ display: "inline-block", marginTop: 14 }}>
+          Ver Central de Prazos →
+        </Link>
       </div>
 
       <div className="card">

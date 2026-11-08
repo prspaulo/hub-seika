@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError, useApiClient } from "../../lib/useApiClient";
+import { useAssignableUsers } from "../../lib/useReferenceData";
 import { REGIME_TRIBUTARIO_LABEL, NATUREZA_ATIVIDADE_LABEL, type NaturezaAtividade, type RegimeTributario } from "../../types/empresa";
-import { SETOR_LABEL, type Setor } from "../../types/processo";
+import { SETOR_LABEL, type ResponsavelDepartamento, type Setor } from "../../types/processo";
 import {
   CARACTERISTICAS_TEMPLATE,
   MESES_LABEL,
@@ -62,6 +63,22 @@ const EMPTY_CARACTERISTICAS = Object.fromEntries(CARACTERISTICAS_TEMPLATE.map((c
 export function ObrigacaoTemplatesPage() {
   const api = useApiClient();
   const queryClient = useQueryClient();
+  const { data: users } = useAssignableUsers();
+  const { data: responsaveis } = useQuery({
+    queryKey: ["responsaveis-departamento"],
+    queryFn: () => api.get("/api/v1/obrigacoes/responsaveis-departamento") as Promise<ResponsavelDepartamento[]>,
+  });
+  const setResponsavelMutation = useMutation({
+    mutationFn: ({ departamento, ownerId }: { departamento: Setor; ownerId: string }) =>
+      ownerId
+        ? api.put(`/api/v1/obrigacoes/responsaveis-departamento/${departamento}`, { ownerId })
+        : api.del(`/api/v1/obrigacoes/responsaveis-departamento/${departamento}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["responsaveis-departamento"] }),
+  });
+  function responsavelDe(departamento: Setor) {
+    return responsaveis?.find((r) => r.departamento === departamento)?.ownerId ?? "";
+  }
+
   const [filtroRegime, setFiltroRegime] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -215,6 +232,33 @@ export function ObrigacaoTemplatesPage() {
         Prazos legais aqui são uma referência operacional (dia-base + meses após a competência), não um
         calendário fiscal completo com feriados/UF/município. Confira sempre conforme a legislação vigente
         antes de confiar cegamente num prazo gerado pelo motor.
+      </div>
+
+      <div className="card">
+        <h3>Responsável padrão por departamento</h3>
+        <p className="muted" style={{ marginTop: -6, marginBottom: 14 }}>
+          Quando configurado, o motor usa este responsável automaticamente ao gerar obrigações desse
+          departamento — o "Responsável padrão" escolhido na hora de gerar vale só pros departamentos sem
+          responsável definido aqui. Obrigações já geradas não são alteradas retroativamente.
+        </p>
+        <div className="formgrid">
+          {DEPARTAMENTOS.map((d) => (
+            <label key={d}>
+              {SETOR_LABEL[d]}
+              <select
+                value={responsavelDe(d)}
+                onChange={(e) => setResponsavelMutation.mutate({ departamento: d, ownerId: e.target.value })}
+              >
+                <option value="">Sem padrão (usa o responsável escolhido na geração)</option>
+                {users?.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
       </div>
 
       {showForm && (

@@ -1,0 +1,14 @@
+$kind: http-request
+name: 'Set responsavel departamento'
+method: PUT
+url: '{{base_url}}/api/v1/obrigacoes/responsaveis-departamento/FISCAL'
+order: 11400
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "ownerId": "{{user_id}}"
+    }
