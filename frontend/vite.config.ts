@@ -13,4 +13,11 @@ export default defineConfig({
       interval: 300,
     },
   },
+  preview: {
+    host: true,
+    // Vite valida o header Host contra uma allowlist (proteção a DNS
+    // rebinding) — sem isso, o domínio dinâmico que o proxy do Railway usa
+    // (ex: *.up.railway.app) é rejeitado com "Blocked request".
+    allowedHosts: true,
+  },
 })

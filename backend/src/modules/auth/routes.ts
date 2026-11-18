@@ -9,10 +9,15 @@ const REFRESH_COOKIE = "seika_refresh_token";
 const REFRESH_COOKIE_PATH = "/api/v1/auth";
 
 function setRefreshCookie(reply: FastifyReply, token: string, expiresAt: Date) {
+  // Em produção (Railway), frontend e backend ficam em subdomínios diferentes
+  // (ex: seika-frontend.up.railway.app / seika-backend.up.railway.app) — pro
+  // navegador isso é cross-site, e cookies "Lax" nunca são enviados em
+  // fetch/XHR cross-site (só em navegação top-level). "None" é obrigatório
+  // aqui; exige Secure, que já é true em produção.
   reply.setCookie(REFRESH_COOKIE, token, {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: env.NODE_ENV === "production" ? "none" : "lax",
     path: REFRESH_COOKIE_PATH,
     expires: expiresAt,
   });
