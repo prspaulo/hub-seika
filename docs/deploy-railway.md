@@ -102,10 +102,22 @@ Observações importantes:
 ### 4. Popular um usuário inicial
 
 O seed (`npm run seed`) cria dados fictícios de demonstração — normalmente você **não**
-quer isso em produção. Em vez disso, crie o primeiro sócio diretamente no Postgres do
-Railway (aba **Data** do plugin, ou `railway run` com o CLI) com uma senha com hash
-bcrypt, do mesmo jeito que foi feito uma vez em desenvolvimento nesta sessão. Se preferir,
-posso gerar esse script quando for a hora.
+quer isso em produção. Use `backend/scripts/create-user.ts` em vez disso — cria (ou
+atualiza, se o e-mail já existir) um usuário com senha com hash bcrypt, do próprio
+computador, mirando o Postgres do Railway:
+
+1. No Railway, abra o plugin **Postgres → Variables** e copie o valor de
+   `DATABASE_PUBLIC_URL` (a `DATABASE_URL` normal só é alcançável de dentro da rede
+   privada do Railway; a `_PUBLIC_` tem host/porta expostos pra acesso externo).
+2. Rode localmente, na pasta `backend/`:
+   ```bash
+   DATABASE_URL="<cole a DATABASE_PUBLIC_URL aqui>" npm run create-user -- "Nome Completo" email@seikacontabilidade.com.br "SenhaForte123" SOCIO
+   ```
+   (No PowerShell: `$env:DATABASE_URL="..."; npm run create-user -- "Nome Completo" email@seikacontabilidade.com.br "SenhaForte123" SOCIO`)
+3. Repita pra cada sócio/funcionário que precisar de acesso. Rodar de novo com o mesmo
+   e-mail atualiza nome/senha/role em vez de duplicar.
+
+Role aceita `SOCIO`, `FUNCIONARIO` ou `CLIENTE` (default `SOCIO` se omitido).
 
 ## Ajustes feitos no código para o deploy funcionar
 
