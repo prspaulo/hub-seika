@@ -112,9 +112,6 @@ export function ObrigacoesList() {
     if (!id) return "Interna / sem cliente";
     return empresas?.items.find((e) => e.id === id)?.razaoSocial ?? "—";
   }
-  function ownerNome(id: string) {
-    return users?.find((u) => u.id === id)?.name ?? "—";
-  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();

@@ -70,6 +70,35 @@ Gere o domínio público do frontend também (**Settings → Networking → Gene
 **volte no backend** pra preencher `CORS_ORIGIN` com essa URL (com `https://`, sem barra
 no final), depois reinicie o serviço do backend pra pegar a variável nova.
 
+### 3.1 Domínio próprio (opcional)
+
+Dá pra trocar a URL `*.up.railway.app` pelo seu domínio em qualquer um dos serviços
+(frontend e/ou backend), sem mudar nada no código.
+
+1. No serviço (ex: frontend) → **Settings → Networking → Custom Domain** → digite o
+   domínio desejado (ex: `sistema.suaempresa.com.br`). O Railway mostra um registro
+   **CNAME** pra você criar.
+2. No painel do seu provedor de DNS (Registro.br, Cloudflare, etc.), crie o registro:
+   - **Tipo**: `CNAME`
+   - **Nome/Host**: a parte antes do domínio (ex: `sistema`)
+   - **Valor/Aponta para**: exatamente o que o Railway mostrou (algo como
+     `xxxxx.up.railway.app`)
+3. Repita pro backend com outro subdomínio (ex: `api.suaempresa.com.br`).
+4. Aguarde a propagação (minutos a algumas horas) — o Railway emite o certificado TLS
+   automaticamente assim que o CNAME resolve.
+
+Observações importantes:
+- **Não dá pra apontar o domínio raiz direto** (`suaempresa.com.br` sem subdomínio) com
+  CNAME puro — use um subdomínio (`sistema.`, `app.`, `api.`...), que é o jeito recomendado
+  pelo próprio Railway. Se seu provedor de DNS suporta CNAME flattening/ALIAS (ex:
+  Cloudflare), aí sim dá pra usar o domínio raiz.
+- Depois de trocar os domínios, **atualize as variáveis de ambiente** pra apontar pros
+  novos endereços: `VITE_API_URL` no frontend (exige **redeploy**, não só restart, porque é
+  embutida no build) e `CORS_ORIGIN` no backend (só restart já basta).
+- Não precisa mexer em nada do cookie de sessão — a correção de `SameSite=None` feita pro
+  deploy já funciona tanto com domínios Railway quanto com domínio próprio, estejam
+  frontend/backend sob o mesmo domínio raiz ou em domínios totalmente diferentes.
+
 ### 4. Popular um usuário inicial
 
 O seed (`npm run seed`) cria dados fictícios de demonstração — normalmente você **não**
